@@ -1,0 +1,44 @@
+{
+    "dev": [
+      {
+        "repo": "Arla-OMB/python-new-dawn-graphql",
+        "trigger": "main/LATEST"
+      },
+      {
+        "repo": "Arla-OMB/omb-frontend",
+        "trigger": "main/LATEST"
+      },
+      {
+        "repo": "Arla-OMB/python-new-dawn-iac",
+        "trigger": "main/LATEST"
+      }
+    ],
+    "qa": [
+      {
+        "repo": "Arla-OMB/python-new-dawn-graphql",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+      },
+      {
+        "repo": "Arla-OMB/omb-frontend",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+      },
+      {
+        "repo": "Arla-OMB/python-new-dawn-iac",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+(rc){0,1}"
+      }
+    ],
+    "prod": [
+      {
+        "repo": "Arla-OMB/python-new-dawn-graphql",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+"
+      },
+      {
+        "repo": "Arla-OMB/omb-frontend",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+"
+      },
+      {
+        "repo": "Arla-OMB/python-new-dawn-iac",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+(rc){0,1}"
+      }
+    ]
+  }

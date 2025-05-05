@@ -1,0 +1,42 @@
+name: Rotate  (Dispatch Trigger)
+
+on:
+  workflow_dispatch:
+    inputs:
+      triggering_repo:
+        description: 'Repo that triggered the run (e.g., owner/repo)'
+        required: true
+        type: string
+      triggering_event:
+        description: 'Event that triggered the run'
+        required: true
+        type: string
+        # Will be matched agains the events defined in the product-rotator.json
+      component_sha:
+        description: 'SHA of the commit in the triggering repo'
+        required: true
+        type: string      
+      configuration:
+        description: 'Configuration to use for the deployment'
+        required: true
+        type: string
+        # Must be a configuration defined in the product-rotator.json
+
+jobs:
+  create-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Rotator Code
+        uses: actions/checkout@v4
+
+      - name: Receive and Use Trigger Data from Inputs
+        run: |
+          echo "Triggering repository: ${{ inputs.triggering_repo }}"
+          echo "Triggering event: ${{ inputs.triggering_event }}"
+          echo "Incoming component SHA: ${{ inputs.component_sha }}"
+          echo "Configuration: ${{ inputs.configuration }}"
+          # Set env vars from inputs
+          echo "COMPONENT_REPO=${{ inputs.triggering_repo }}" >> $GITHUB_ENV
+          echo "COMPONET_EVENT=${{ inputs.triggering_event }}" >> $GITHUB_ENV
+          echo "COMPONENT_SHA=${{ inputs.component_sha }}" >> $GITHUB_ENV
+          echo "COMPONENT_CONFIGURATION=${{ inputs.configuration }}" >> $GITHUB_ENV
