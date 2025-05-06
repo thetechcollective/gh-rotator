@@ -1,0 +1,14 @@
+[
+    {
+        "repo": "thetechcollective/gh-tt",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+    },
+    {
+        "repo": "lakruzz/gh-semver",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+    },
+    {
+        "repo": "thetechcollective/gh-downstream",
+        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+    }
+]

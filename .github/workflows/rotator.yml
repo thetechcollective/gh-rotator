@@ -26,7 +26,7 @@ jobs:
   create-manifest:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Rotator Code
+      - name: Checkout the repository
         uses: actions/checkout@v4
 
       - name: Receive and Use Trigger Data from Inputs
@@ -40,3 +40,6 @@ jobs:
           echo "COMPONET_EVENT=${{ inputs.triggering_event }}" >> $GITHUB_ENV
           echo "COMPONENT_SHA=${{ inputs.component_sha }}" >> $GITHUB_ENV
           echo "COMPONENT_CONFIGURATION=${{ inputs.configuration }}" >> $GITHUB_ENV
+
+          ./rotator.py manifest --repo ${{ inputs.triggering_repo }} --event ${{ inputs.triggering_event }} --sha1 ${{ inputs.component_sha }} --configuration ${{ inputs.configuration }}
+
