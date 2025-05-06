@@ -1,0 +1,34 @@
+[project]
+name = "gh-rotator"
+version = "0.0.1"
+description = "GitHub extension automating product configuration rotation in multiple repositories"
+requires-python = ">=3.13"
+authors = [
+    {name = "Lars Kruse", email = "lars@lakruzz.com"}
+]
+license = "GPL-3.0-or-later"
+readme = "README.md"
+keywords = ["github", "trunk-based-development", "automation", "product-configuration", "rotation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov"
+]
+
+build = [
+    "setuptools",
+    "packaging"
+]
+

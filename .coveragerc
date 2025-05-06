@@ -1,0 +1,18 @@
+[run]
+# Include the main CLI script and the classes directory
+source = 
+    classes/*
+
+# Exclude test files
+omit = 
+    gh_rotator.py
+    tests/*
+    setup.py
+
+[report]
+# Fail the build if the coverage is less than 80%
+fail_under = 65
+
+# Skip empty files
+skip_empty = True
+

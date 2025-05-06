@@ -12,10 +12,10 @@ echo "$PREFIX Setting up git configuration to support .gitconfig in repo-root"
 git config --local --get include.path | grep -e ../.gitconfig >/dev/null 2>&1 || git config --local --add include.path ../.gitconfig
 
 echo "$PREFIX Checking if the uv environment - if needed"
-if [ -e ../pyproject.toml ]; then
+if [ -e ./pyproject.toml ]; then
     echo "$PREFIX Installing uv"
     curl -LsSf https://astral.sh/uv/install.sh | sh
-    echo "$PREFIX Creating and ectivating the venv"
+    echo "$PREFIX Creating and activating the venv"
     uv venv
     . .venv/bin/activate
     echo "$PREFIX uv syncing the dev environment"

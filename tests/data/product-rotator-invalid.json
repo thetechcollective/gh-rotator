@@ -12,7 +12,7 @@
         "repo": "thetechcollective/gh-downstream",
         "trigger": "main/LATEST"
       }
-    ],
+    ]
     "qa": [
       {
         "repo": "thetechcollective/gh-tt",
