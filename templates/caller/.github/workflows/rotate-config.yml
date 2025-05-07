@@ -1,0 +1,70 @@
+name: Rotate  (Dispatch Trigger)
+
+on:
+  # This is the 'dev' configuration
+  # trigger on main
+  push:
+    branches:
+      - main
+
+  # This is the 'qa' configuration
+  # trigger on a SEMVER tag with an `rc`(release candidate) suffix /\d+\.\d+\.\d+\.rc/
+  # Examples 10.2.3rc, 1.20.3rc, 1.2.30rc, 10.20.30rc 
+  # but the \d syntax isn't supported in github's glob syntax neither is + only the wildcard * 
+  # (which also supports none) and the . is a literal '.' — so the final construct is a bit verbose
+  # ...but it works
+  push:
+    tags:
+      - '[0-9].[0-9].[0-9]rc'
+      - '[0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*rc' 
+  # This is the 'prod' configuration
+  # trigger on a SEMVER tag with no suffix /\d+\.\d+\.\d+/
+  # Examples 10.2.3, 1.20.3, 1.2.30, 10.20.30
+      - '[0-9].[0-9].[0-9]'
+      - '[0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*' 
+  
+  
+  
+jobs:
+  create-manifest:
+    runs-on: ubuntu-latest
+    # enable gh cli
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@4
+      
+      - name: Ensure Python
+        # assume python3 is installed, it is in ubuntu-latest, 
+        # but if you are using a different image, you may need to install it
+        runs: |
+          command -v python3 || { echo "Python3 is not installed"; exit 1; }
+
+      - name: Install gh extension 'thetechcollective/rotator'
+        # Visit https://github.com/thetechcollective/gh-rotator for more information
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh extension install thetechcollective/gh-rotator
+
+      - name: trigger the config rotator on the product repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+
+          # Change CONFIGURATIONS below to a csv list of the configurations you want to potentially trigger in the product repo
+          # The product repo will only rotate the configurations that you list here.
+          # E.g. Even if a trigger event is defined in configuration `prod` it will not rotate if
+          # you set CONFIGURATIONS=dev,qa
+          CONFIGURATIONS=dev,qa,prod
+
+          echo "Configuration: dev,qa,prod"                       >> $GITHUB_STEP_SUMMARY
+          echo "Triggering repository: ${{ github.repository }}"  >> $GITHUB_STEP_SUMMARY
+          echo "Triggering event: ${{ github.event_name }}"       >> $GITHUB_STEP_SUMMARY
+          echo "Triggering SHA: ${{ github.sha }}"                >> $GITHUB_STEP_SUMMARY
+
+          # trigger the config rotator on the product repo
+          # the product repo is the repo that contains the product-rotator.json
+          # You should change the REPO variable to your own product repo - the rest of the command stays the same
+          REPO=thetechcollective/product-sample
+          echo "On repository: $REPO"                             >> $GITHUB_STEP_SUMMARY
+          gh workflow run .github/workflows/rotator.yml --repo ${REPO} --ref main -f triggering_repo=${{ github.repository }} -f triggering_event=${{ github.event_name }} -f component_sha=${{ github.sha }} -f configuration=${CONFIGURATIONS} 
