@@ -7,20 +7,23 @@ on:
         description: 'Repo that triggered the run (e.g., owner/repo)'
         required: true
         type: string
+        # Accessible at the caller as ${{github.repository}}
       triggering_event:
         description: 'Event that triggered the run'
         required: true
         type: string
-        # Will be matched agains the events defined in the product-rotator.json
+        # Accessible at the caller as ${{github.event_name}}
       component_sha:
         description: 'SHA of the commit in the triggering repo'
         required: true
-        type: string      
+        type: string
+        # Accessible at the caller as ${{github.sha}}
       configuration:
         description: 'Configuration to use for the deployment'
         required: true
         type: string
         # Must be a configuration defined in the product-rotator.json
+        # defaults are [dev|qa|prod]
 
 jobs:
   create-manifest:
