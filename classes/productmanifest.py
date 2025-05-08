@@ -41,7 +41,22 @@ class ProductManifest(Lazyload):
             
             # Load the config file
             self.__load_manifest(configuration)
+            
+    def __save_manifest(self, configuration=str):
+        """Save the manifest of the corresponding configuration to disk"""
+        
+        file_path = self.get(f"{configuration}_file")
+ 
+        try:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(self.get(f"{configuration}_file"), 'w') as f:
+                json.dump(self.get(f"{configuration}_manifest"), f, indent=4)
+        except Exception as e:
+            print(f"⛔️ Error: Failed to save manifest for {configuration}: {str(e)}", file=sys.stderr)
+            sys.exit(1)            
 
+        
+        
     def __load_manifest(self, configuration=str):
         """Load the maifest from manifest files or configuration"""
         
@@ -96,7 +111,11 @@ class ProductManifest(Lazyload):
             sys.exit(1)
             
                
-        # Write the updated manifest back to the file
+        # Write the updated manifest back to the file        
+        ## Check if the file exists and run __save_manifest if it doesn't
+        if not os.path.exists(self.get(f"{configuration}_file")):
+            self.__save_manifest(configuration)
+        
         with open(self.get(f"{configuration}_file"), 'w') as f:
             json.dump(self.get(f'{configuration}_manifest'), f, indent=4)
             if verbose:
