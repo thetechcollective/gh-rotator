@@ -103,13 +103,14 @@ class ProductManifest(Lazyload):
                     found = True
                     break
  
-                if not found:
-                   print(f"⛔️ Error: Repository {repo} not found in configuration {configuration}", file=sys.stderr)
-                   sys.exit(1) 
         except AssertionError:
             print(f"⛔️ Error: The configuration '{configuration}' is not valid.", file=sys.stderr)
             sys.exit(1)
-            
+        
+        if not found:
+            print(f"⛔️ Error: Repository {repo} not found in configuration {configuration}", file=sys.stderr)
+            sys.exit(1) 
+    
                
         # Write the updated manifest back to the file        
         ## Check if the file exists and run __save_manifest if it doesn't
