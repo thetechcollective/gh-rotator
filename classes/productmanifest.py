@@ -75,22 +75,27 @@ class ProductManifest(Lazyload):
         
         # Check if the repo exists in the manifest
         found = False
-        for entry in self.get(f"{configuration}_manifest")[configuration]:
-            if entry["repo"] == repo:
-                # Update the entry 
-                now =datetime.datetime.now().strftime(f"%Y-%m-%d (%H:%M:%S) [{time.strftime("%Z")}]")
-                entry["version"] = sha1
-                entry["event"] = event
-                entry["last_update"] = now
-                if verbose:
-                    print(f"Rotating {repo} in {configuration} manifest with version {sha1} triggered by event: {event}")
-                found = True
-                break
-        
-        if not found:
-            print(f"⛔️ Error: Repository {repo} not found in configuration {configuration}", file=sys.stderr)
+        try:
+            for entry in self.get(f"{configuration}_manifest")[configuration]:
+                if entry["repo"] == repo:
+                    # Update the entry 
+                    now =datetime.datetime.now().strftime(f"%Y-%m-%d (%H:%M:%S) [{time.strftime("%Z")}]")
+                    entry["version"] = sha1
+                    entry["event"] = event
+                    entry["last_update"] = now
+                    if verbose:
+                        print(f"Rotating {repo} in {configuration} manifest with version {sha1} triggered by event: {event}")
+                    found = True
+                    break
+ 
+                if not found:
+                   print(f"⛔️ Error: Repository {repo} not found in configuration {configuration}", file=sys.stderr)
+                   sys.exit(1) 
+        except AssertionError:
+            print(f"⛔️ Error: The configuration '{configuration}' is not valid.", file=sys.stderr)
             sys.exit(1)
-        
+            
+               
         # Write the updated manifest back to the file
         with open(self.get(f"{configuration}_file"), 'w') as f:
             json.dump(self.get(f'{configuration}_manifest'), f, indent=4)

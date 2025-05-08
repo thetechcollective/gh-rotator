@@ -2,9 +2,9 @@
     "dev": [
         {
             "repo": "thetechcollective/gh-tt",
-            "version": "67e0847ed6dcceb279ad6dfbac5225d753f68500",
-            "event": "main/LATEST",
-            "last_update": "2025-05-06 (14:06:11) [UTC]"
+            "version": "1",
+            "event": "1",
+            "last_update": "2025-05-08 (11:31:54) [UTC]"
         },
         {
             "repo": "lakruzz/gh-semver",
