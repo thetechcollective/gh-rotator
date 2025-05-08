@@ -8,15 +8,12 @@
         },
         {
             "repo": "lakruzz/gh-semver",
-            "version": "dad544ed1e6700917f55e35565cda803630c739a",
-            "event": "main/LATEST",
-            "last_update": "2025-05-06 (13:25:40) [UTC]"
+            "version": "1",
+            "event": "main",
+            "last_update": "2025-05-08 (13:16:39) [UTC]"
         },
         {
-            "repo": "thetechcollective/gh-downstream",
-            "version": "3d093a743ab527927e1d956a9114a624d353a6cc",
-            "event": "main/LATEST",
-            "last_update": "2025-05-06 (13:03:45) [UTC]"
+            "repo": "thetechcollective/gh-downstream"
         }
     ]
 }
