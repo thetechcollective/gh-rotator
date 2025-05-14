@@ -32,12 +32,12 @@ Each component is defind by the fully qulified `repo` name, the `ref_type` that 
         "ref_name": "main"
       },
       {
-        "repo": "config-rotator/iac-frontend",
+        "repo": "config-rotator/frontend-component",
         "ref_type": "branch",
         "ref_name": "main"
       },
       {
-        "repo": "config-rotator/iac-backend",
+        "repo": "config-rotator/backend-component",
         "ref_type": "branch",
         "ref_name": "main"
       }
@@ -49,12 +49,12 @@ Each component is defind by the fully qulified `repo` name, the `ref_type` that 
         "ref_name": "\\d+\\.\\d+\\.\\d+rc"
       },
       {
-        "repo": "config-rotator/iac-frontend",
+        "repo": "config-rotator/frontend-component",
         "ref_type": "tag",
         "ref_name": "\\d+\\.\\d+\\.\\d+rc"
       },
       {
-        "repo": "config-rotator/iac-backend",
+        "repo": "config-rotator/backend-component",
         "ref_type": "tag",
         "ref_name": "\\d+\\.\\d+\\.\\d+rc"
       }
@@ -66,12 +66,12 @@ Each component is defind by the fully qulified `repo` name, the `ref_type` that 
         "ref_name": "\\d+\\.\\d+\\.\\d+"
       },
       {
-        "repo": "config-rotator/iac-frontend",
+        "repo": "config-rotator/frontend--component",
         "ref_type": "tag",
         "ref_name": "\\d+\\.\\d+\\.\\d+"
       },
       {
-        "repo": "config-rotator/iac-backend",
+        "repo": "config-rotator/backend-component",
         "ref_type": "tag",
         "ref_name": "\\d+\\.\\d+\\.\\d+"
       }
@@ -79,11 +79,11 @@ Each component is defind by the fully qulified `repo` name, the `ref_type` that 
   }
 ```
 
-The example above is quite generic (and oppinionated)  and you can probably use it as it is, only renaming the `repo` elements and leaving everything else as it is.
+The example above is quite generic (and oppinionated) and you can probably use it as it is, only renaming the `repo` elements and leaving everything else as it is.
 
 The concepts is that the `dev` configuration is rotated by any new commit to `main`. The `qa` configuration is more stable, it's  triggered by releasae candidate SemVer tags with an `rc` suffix (e.g. `1.0.12rc`, `1.0.13rc`. `2.1.23rc` etc) and the `prod` config is triggered by SemVer tags ((e.g. `1.0.0`, `1.0.13`. `2.1.0` etc))
 
-When the dependency map is interpreted it results in a concrete manifest where the trigger is replaced with the SHA1 and a note to indicate what resloved the SHA1
+When the dependency map is interpreted it results in a concrete manifest where the version is noted with the SHA and a note to indicate what resloved the SHA1
 
 Showing the `dev` manifest as an example - staying with the comparison to Python's uv tool this is then the equvivalent to the `uv.lock` file.
 
@@ -98,14 +98,14 @@ Showing the `dev` manifest as an example - staying with the comparison to Python
             "last_update": "2025-05-06 (14:06:11) [UTC]"
         },
         {
-            "repo": "config-rotator/iac-frontend",
+            "repo": "config-rotator/frontend-component",
             "version": "dad544ed1e6700917f55e35565cda803630c739a",
             "ref_type": "branch",
             "ref_name": "main"
             "last_update": "2025-05-06 (13:25:40) [UTC]"
         },
         {
-            "repo": "config-rotator/iac-backend",
+            "repo": "config-rotator/backend-component",
             "version": "3d093a743ab527927e1d956a9114a624d353a6cc",
             "ref_type": "branch",
             "ref_name": "main"
@@ -124,7 +124,7 @@ So conseqently `dev`, `qa` or `prod` configurations will be created as:
 - `./configurations/prod/config-prod-manifest.json`
 
 ### One flow to trigger everything
-The rotator is implemented by using a genric flow (`.github/workflows/rotator.yml`)
+Besides the config-rotator.json config file, the product repo also offers a rotator flow, implemented by using a genric flow (`.github/workflows/rotator.yml`)
 
 This flow takes a set of predefined mandatory parameters and have dispatch enabled, which enables that it can be triggered either manually or programatically by using `gh workflow run ...`). 
 
@@ -161,29 +161,31 @@ The flow then passes the four parameters to `gh rotator manifest ...` a subcomma
 
 ## Infrastructure as code 
 
-After the manifest is updated and stored, contoll is passed on to a generid script, which will read and utilitlise the data in the updated manifest to deploy the infrastructure and run the according automated test.
+After the manifest is updated and stored, contol is passed on to the next jonb in the flow which is desinged to call a generic script, which will read the data in the updated manifest and start to deploy the infrastructure and run the according automated test.
 
-We implement this as another GitHub CLI extension; which is a simple wrapper to serve as a generic interface to start our Pulumi scripts and initiate tests.
+The recommendation is that you build a gh-cli extension script (much like this `gh-rotator` script) see our [py-cli-template](https://github.com/thetechcollective/py-cli-template) for inspiration.
+
+The script should take a manifest file as parameter and build the infrastructure needed and deploy based on that.
 
 ## Setup
 
 All the repos mentioned in the product configuration could be setup as callers, which essentially means that they can trigger a configuration rotation.
 
-Using the examples from above we could setup a product repository at `thetechcollective/product-sample`
+We hawe simulated a setup in 
+- `config-rotator/product-sample`
+- `config-rotator/iac--component`
+- `config-rotator/frontend--component`
+- `config-rotator/backend-component`
 
-### Product repo: `thetechcollective/product-sample`
+### Product repo: `config-rotator/product-sample`
 
 Required configuration
 
-- `./product-rotator.json`
+- `./config-rotator.json`
 
 Required workflows
 
 - `.github/workflows/rotator.yml`
-- `.github/workflows/product-rotator-dev.yml`<br/>
-- `.github/workflows/product-rotator-qa.yml`<br/>
-- `.github/workflows/product-rotator-prod.yml`<br/> 
-- ...you should set up a job for each configuration defined in `product-rotator.json`
 
 The following dirs/files will be create automatically
 
@@ -194,26 +196,43 @@ The following dirs/files will be create automatically
     - `config-qa-manifest.json`
   - `prod`
     - `config-peod-manifest.json`
-  - ...one subfolders with corresponding manifest will be created for each config defined in the `prodcut-rotator.json`
+  - ...one subfolders with corresponding manifest will be created for each config defined in the `config-rotator.json`
 
 
 
 ### Caller repos:
-In the example the following repos are defined in the dependency map `product-rotator.json`
+In the example the following repos are defined in the dependency map `config-rotator.json`
 
-- `thetechcollective/gh-tt`
-- `lakruzz/gh-semver`
-- `thetechcollective/gh-downstream`
+- `config-rotator/iac--component`
+- `config-rotator/frontend--component`
+- `config-rotator/backend-component`
 
-These are all candidates to be set up as _callers_ so they can trigger the `rotator.yml` job in the 
+These are all candidates to be set up as _callers_ so they can trigger the `rotator.yml` job in the product-repo 
 
-The template flow is [rotate-config](./templates/caller/.github/workflows/rotate-config.yml)
+The template flow is [rotate-config](./templates/caller/.github/workflows/rotator-config.yml)
 
-The conceptual ideas in an _individually releaseble component_  structure (as opposed to a mone-repo) is that each componnet must define a trust-worthy _self-test_ which — if successful — defines a _potentially shippable_  state and the repos should then trigger the product config rotator to verify the shippableness (cool word eh?)
+The conceptual ideas that each rpos is an _individually releaseble component_  that works in a structure - as opposed to a mone-repo. 
 
-So the entire `rotate-config.yml` may not actually be needed but the steps described cond be incorporated as post steps in a successfule self-test workflow, whatever that looks like in the given context.
+Each component must define a trust-worthy _self-test_ which — if successful — defines a _potentially shippable_ state. Ideally this is when the commit hits main, so the test should happen as part of a delivery or pull request process. This should trigger the product config rotator to verify the shippableness (cool word eh?)
+
+In our template workfolw we have shown how that can be done in a seperate workflow.
 
 
+>[!NOTE]
+>One workflow can not trigger another workflow based on the standard `secrets.GITHUB_TOKEN`. To solve this do the following:
+>1. In you GitHub Profile define a PAT - Personal Access Tokon**
+>   - As Ressource owner selct the organization that host the product-repo
+>   - The access can be limited to the same repo
+>   - grant read/write to `actions` and read to `contents`and `metadata`
+>2. Capture the TOKEN in you clipboard and go each of the caller repos and under _settings_ define a repository action secret named `ROTATOR_TOKEN`
+
+<details><summary>Detailed screen dumps from GitHub</summary>
+
+<img src="https://github.com/user-attachments/assets/895e30ad-f023-4ade-aeb9-adfb66c85f7f"/>
+<img src="https://github.com/user-attachments/assets/e7505b10-4bbd-40d2-8c9c-32ce2d506c2f"/>
+<img src="https://github.com/user-attachments/assets/53ab73a8-fa67-4cf5-ac70-0811c6de76bb"/>)
+
+</details>
 
 
 
