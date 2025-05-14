@@ -1,10 +1,10 @@
 # Configuration Rotator
-#### Used to suppart a product repository, which define and _rotate_ a configuration of a product with a composite product structure — a _multi repo_ product.
+#### Used to support a product repository, which defines and _rotates_ a configuration of a product with a composite product structure — a _multi repo_ product.
 
 >[!NOTE]
->**The "configuration rotator" concept is used to forward and update a _composite_ product. _Composite_ defined as a product that is essentially stitched together as a _dependency map_ of individually released components. Every time a new version of _any_ of the components that contribute to the composite product is release, this "rotator" repo is triggered to setup, deploy and test, wether or not this new dependency map is compliant or not – and marks it accordingly.**
+>**The "configuration rotator" concept is used to forward and update a _composite_ product. _Composite_ defined as a product that is essentially stitched together as a _dependency map_ of individually released components. Every time a new version of _any_ of the components that contribute to the composite product is release, this _rotator_  workflow is triggered to manifest, deploy and test, wether or not this new dependency map is compliant or not – and marks it accordingly.**
 
-This repo contains the documentation for how to set up the configuration rotaor in a seperate product repoistory, and most importantly at GitGub Command Line extension which will allow you to outomate the process.
+This repo contains the documentation for how to set up the configuration rotaor in a seperate product repoistory, and most importantly at GitGub Command Line extension which will allow you to automate the process.
 
 ## The basics
 This is an oppiniated flavor of a solution. Others could have done this differently but here's how we work this.
@@ -13,97 +13,122 @@ This is an oppiniated flavor of a solution. Others could have done this differen
 Think of how `npm`, `pipenv`, `uv` or `bundle` works
 
 - There's a _configuration_ which describes the generic or logical concept of the product.
-- There's a _manifest_ of how that configuration was interpreted into concrete composite product. 
+- There's a _manifest_ of how that configuration was interpreted into concrete selection of virsioned components. 
 
-This concept is similar but now tranfered to a git repository context. So the basic trigger is that _a git repo included in the dependency map is updated_.
+The concept in Config Rotator is similar but now tranfered to a git repository context. So the basic trigger is that _a git repo included in the dependency map is updated_.
 
+The generic map is implemented in a `config-rotator.json` file in the root of the product repository. In python's uv this corresponds to the `dependencies` described in a `pyproject.toml`:
 
-The generic map looks like this (in python's uv this corresponds to the `dependencies` described in a `pyproject.toml`):
+It contains a set of configurations — in our case `dev`, `qa` and `prod`.
+
+Each component is defind by the fully qulified `repo` name, the `ref_type` that should trigger the flow (`branch`|`tag`), and `ref_name` which is a regular expression, which that actual `ref_name` must be match against.
 
 ```json
-#FILE: product-config.json
 {
     "dev": [
       {
-        "repo": "thetechcollective/gh-tt",
-        "trigger": "main/LATEST"
+        "repo": "config-rotator/iac-component",
+        "ref_type": "branch",
+        "ref_name": "main"
       },
       {
-        "repo": "lakruzz/gh-semver",
-        "trigger": "main/LATEST"
+        "repo": "config-rotator/iac-frontend",
+        "ref_type": "branch",
+        "ref_name": "main"
       },
       {
-        "repo": "thetechcollective/gh-downstream",
-        "trigger": "main/LATEST"
+        "repo": "config-rotator/iac-backend",
+        "ref_type": "branch",
+        "ref_name": "main"
       }
     ],
     "qa": [
       {
-        "repo": "thetechcollective/gh-tt",
-        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+        "repo": "config-rotator/iac-component",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+rc"
       },
       {
-        "repo": "lakruzz/gh-semver",
-        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+        "repo": "config-rotator/iac-frontend",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+rc"
       },
       {
-        "repo": "thetechcollective/gh-downstream",
-        "trigger": "tag:\\d+\\.\\d+\\.\\d+rc"
+        "repo": "config-rotator/iac-backend",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+rc"
       }
     ],
     "prod": [
       {
-        "repo": "thetechcollective/gh-tt",
-        "trigger": "tag:\\d+\\.\\d+\\.\\d+"
+        "repo": "config-rotator/iac-component",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+"
       },
       {
-        "repo": "lakruzz/gh-semver",
-        "trigger": "tag:\\d+\\.\\d+\\.\\d+"
+        "repo": "config-rotator/iac-frontend",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+"
       },
       {
-        "repo": "thetechcollective/gh-downstream",
-        "trigger": "tag:\\d+\\.\\d+\\.\\d+(rc){0,1}"
+        "repo": "config-rotator/iac-backend",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+"
       }
     ]
   }
 ```
 
-The `dev` configuration is rotated by any new commit to `main` but the `qa` configuration is more stable, it's only triggered by SemVer tags with an `rc` suffix (e.g. `1.0.12rc`, `1.0.13rc`. `2.1.23rc` etc)
+The example above is quite generic (and oppinionated)  and you can probably use it as it is, only renaming the `repo` elements and leaving everything else as it is.
 
-When the dependency map is interpreted it results in a concrete manifest where the trigger is replaced with the SHA1 and a note to indicate what ressloved the SHA1
+The concepts is that the `dev` configuration is rotated by any new commit to `main`. The `qa` configuration is more stable, it's  triggered by releasae candidate SemVer tags with an `rc` suffix (e.g. `1.0.12rc`, `1.0.13rc`. `2.1.23rc` etc) and the `prod` config is triggered by SemVer tags ((e.g. `1.0.0`, `1.0.13`. `2.1.0` etc))
 
-Showing the `dev` manifest as an example - staying with Pythnon's uv tool this is then the equvivalent to the `uv.lock` file.
+When the dependency map is interpreted it results in a concrete manifest where the trigger is replaced with the SHA1 and a note to indicate what resloved the SHA1
+
+Showing the `dev` manifest as an example - staying with the comparison to Python's uv tool this is then the equvivalent to the `uv.lock` file.
 
 ```json
-#FILE: /configurations/dev/condif-dev-manifest.json
 {
     "dev": [
         {
-            "repo": "thetechcollective/gh-tt",
+            "repo": "config-rotator/iac-component",
             "version": "67e0847ed6dcceb279ad6dfbac5225d753f68500",
-            "event": "main/LATEST",
+            "ref_type": "branch",
+            "ref_name": "main"
             "last_update": "2025-05-06 (14:06:11) [UTC]"
         },
         {
-            "repo": "lakruzz/gh-semver",
+            "repo": "config-rotator/iac-frontend",
             "version": "dad544ed1e6700917f55e35565cda803630c739a",
-            "event": "main/LATEST",
+            "ref_type": "branch",
+            "ref_name": "main"
             "last_update": "2025-05-06 (13:25:40) [UTC]"
         },
         {
-            "repo": "thetechcollective/gh-downstream",
+            "repo": "config-rotator/iac-backend",
             "version": "3d093a743ab527927e1d956a9114a624d353a6cc",
-            "event": "main/LATEST",
+            "ref_type": "branch",
+            "ref_name": "main"
             "last_update": "2025-05-06 (13:03:45) [UTC]"
         }
     ]
 }
 ```
 
-### Each config has it's own flow - mapped by configration name
-The rotator is implemented by using four flows (`.github/workflows/*.yml`)
+The manifest files are created by the workflow in the product repo at<br/> `./configurations/<CONFIGURATION>/config-<CONFIGURATION>-manifest.json`
 
-The first one is the `rotator.yml` this flow contains a job wichi is dispatch enabled (can be triggered manually or programatically by using `gh workflow run ...`). The dispatch job takes four requireed parameters:
+So conseqently `dev`, `qa` or `prod` configurations will be created as:
+
+- `./configurations/dev/config-dev-manifest.json`
+- `./configurations/qa/config-qa-manifest.json`
+- `./configurations/prod/config-prod-manifest.json`
+
+### One flow to trigger everything
+The rotator is implemented by using a genric flow (`.github/workflows/rotator.yml`)
+
+This flow takes a set of predefined mandatory parameters and have dispatch enabled, which enables that it can be triggered either manually or programatically by using `gh workflow run ...`). 
+
+The parameters are defines as:
 
 ```yml
 on:
@@ -114,33 +139,31 @@ on:
         required: true
         type: string
         # Accessible at the caller as ${{github.repository}}
-      triggering_event:
-        description: 'Event that triggered the run'
+      triggering_event_type:
+        description: 'Event type that triggered the run (branch|tag)'
         required: true
         type: string
-        # Accessible at the caller as ${{github.event_name}}
+        # Accessible at the caller as ${{github.ref_type}}
+      triggering_event_name:
+        description: 'Event that triggered the run (branch or tag name)'
+        required: true
+        type: string
+        # Accessible at the caller as ${{github.ref_name}}
       component_sha:
         description: 'SHA of the commit in the triggering repo'
         required: true
         type: string
         # Accessible at the caller as ${{github.sha}}
-      configuration:
-        description: 'Configuration to use for the deployment'
-        required: true
-        type: string
-        # Must be a configuration defined in the product-rotator.json
-        # defaults are [dev|qa|prod]
 ```
 See the entire flow in the [`rotator.yml` template](./templates/product-repo/.github/workflows/rotator.yml)
 
+The flow then passes the four parameters to `gh rotator manifest ...` a subcommand in this GitHub CLI extension. It will check that validity of the parameters according to the a given config. And if a match is found in any of the configurations it will update the corresponding maifest with the instantiated configuration, check it in and pust back to origin.
 
-The flow then passes the four parameters to `gh rotator manifest ...` which will check that validity according to the config, and if a roatation is required it will update the maifest for corresponding configuration, check it in and pust back to origin.
+## Infrastructure as code 
 
-The manifests are divided up into a seperate file for each configuration. Each has it's own workflow:  
+After the manifest is updated and stored, contoll is passed on to a generid script, which will read and utilitlise the data in the updated manifest to deploy the infrastructure and run the according automated test.
 
-`dev`  = `.github/workflows/product-rotator-dev.yml`<br/>
-`qa` = `.github/workflows/product-rotator-qa.yml`<br/>
-`prod` = `.github/workflows/product-rotator-prod.yml`<br/>
+We implement this as another GitHub CLI extension; which is a simple wrapper to serve as a generic interface to start our Pulumi scripts and initiate tests.
 
 ## Setup
 
