@@ -22,6 +22,12 @@
   sweep = "!f() { git fetch --prune && for branch in $(git branch -vv | grep ': gone]' | awk \"{print \\$1}\"); do git branch -D \"$branch\"; done; }; f"
   sweep-verbose = "!f() { git fetch --prune && branches=$(git branch -vv | grep ': gone]' | awk '{print $1}'); if [ -z \"$branches\" ]; then echo \"No remote-tracking branches to prune.\"; else echo \"Pruning branches: $branches\"; echo \"$branches\" | xargs git branch -d; fi; }; f"
   note-this = "!f() { git addremove && git recommit && git push --force && gh note \"$(git get-message) ($(git sha1))\"; }; f"
+  prerelease = "!f() { git push --tag && gh release create `gh semver` --latest --verify-tag --prerelease --generate-notes; }; f"
+  my-pr = "!f() { gh pr list --head $(git rev-parse --abbrev-ref HEAD) --json number | jq -r '.[].number'; }; f"
+  pr-automerge = "!f() { gh pr merge $(git my-pr) --rebase --auto; }; f"
+
+  
+
 
 [project]
   owner   = thetechcollective

@@ -1,17 +1,25 @@
 {
-  "dev": [
-    {
-      "repo": "Arla-OMB/python-new-dawn-graphql",
-      "trigger": "main/LATEST"
-    },
-    {
-      "repo": "Arla-OMB/omb-frontend",
-      "trigger": "main/LATESEST",
-      "version": "23esada34"
-    },
-    {
-      "repo": "Arla-OMB/python-new-dawn-iac",
-      "trigger": "main/LATEST"
-    }
-  ]
+    "dev": [
+        {
+            "repo": "config-rotator/iac-component",
+            "ref_type": "branch",
+            "ref_name": "main",
+            "version": "197fdfb38668d9fc734a2d1292c8e4a8a0eab6ec",
+            "last_update": "2025-05-15 (07:51:28) [UTC]"
+        },
+        {
+            "repo": "config-rotator/frontend-component",
+            "ref_type": "branch",
+            "ref_name": "main",
+            "version": "a2476c991620201c370381da6de1858019f4ef1a",
+            "last_update": "2025-05-15 (07:58:20) [UTC]"
+        },
+        {
+            "repo": "config-rotator/backend-component",
+            "ref_type": "branch",
+            "ref_name": "main",
+            "version": "1a0b35a3cf0416b9ae8017509941334608243840",
+            "last_update": "2025-05-15 (13:05:58) [UTC]"
+        }
+    ]
 }

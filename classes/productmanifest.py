@@ -67,10 +67,15 @@ class ProductManifest(Lazyload):
             # file
             manifest_data = {configuration: self.get('config').get('config')[configuration]}
             
-            # Weed out the trigger for each list item
             for item in manifest_data[configuration]:
-                if "trigger" in item:
-                    del item["trigger"]
+                # Unset the ref_name for all entries in the manifest
+                if "ref_name" in item:
+                    item["ref_name"] = ""
+                # set version and last_update to empty
+                item["version"] = ""
+                item["last_update"] = ""
+            
+
                             
             self.set(f'{configuration}_manifest', manifest_data)
             
@@ -83,11 +88,13 @@ class ProductManifest(Lazyload):
                 print(f"⛔️ Error: Manifest file {self.get(f"{configuration}_file")} is not a valid JSON file", file=sys.stderr)
                 sys.exit(1)
                 
-                
-    def rotate(self, configuration=str, repo=str, event=str, sha1=str, verbose=False):
+
+    def rotate(self, repo=str, event_name=str, event_type=str, sha=str, verbose=False):
         """Rotate the manifest for the given configuration"""
-        # The constructor already loaded the manifests, for were good to assume it's healthy
+        # The constructor already loaded the manifests, so were good to assume it's healthy
         
+        configuration = self.get('config').get_config_name(repo, event_name, event_type, verbose)
+
         # Check if the repo exists in the manifest
         found = False
         try:
@@ -95,11 +102,12 @@ class ProductManifest(Lazyload):
                 if entry["repo"] == repo:
                     # Update the entry 
                     now =datetime.datetime.now().strftime(f"%Y-%m-%d (%H:%M:%S) [{time.strftime("%Z")}]")
-                    entry["version"] = sha1
-                    entry["event"] = event
+                    entry["version"] = sha
+                    entry["ref_type"] = event_type
+                    entry["ref_name"] = event_name
                     entry["last_update"] = now
                     if verbose:
-                        print(f"Rotating {repo} in {configuration} manifest with version {sha1} triggered by event: {event}")
+                        print(f"Rotating {repo} in {configuration} manifest with version {sha} triggered by event: {event_type}")
                     found = True
                     break
  
@@ -137,9 +145,6 @@ class ProductManifest(Lazyload):
                     return entry["version"]
                 except KeyError:
                     print(f"⛔️ Error: The repo '{repo}' is not yet manifested in  the '{configuration}' configuation.", file=sys.stderr)
-                    if verbose:
-                        print(f"👉 Consider running 'gh rotator maifest ...' manually and then check in the manifest and try again", file=sys.stderr)
-                        print(json.dumps(self.get(f'{configuration}_manifest'), indent=4))
                     sys.exit(1)
         
         print(f"⛔️ Error: Repository {repo} not found in configuration {configuration}", file=sys.stderr)
