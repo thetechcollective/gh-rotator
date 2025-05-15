@@ -1,0 +1,25 @@
+{
+    "prod": [
+        {
+            "repo": "config-rotator/iac-component",
+            "ref_type": "tag",
+            "ref_name": "1.0.3",
+            "version": "157bdb4b69b7525a49a5ee70f922a336fc4504d1",
+            "last_update": "2025-05-15 (11:26:34) [UTC]"
+        },
+        {
+            "repo": "config-rotator/frontend-component",
+            "ref_type": "tag",
+            "ref_name": "3.4.0",
+            "version": "eba261fab799ddd28fbfc63eedb7e336da73f943",
+            "last_update": "2025-05-15 (08:38:11) [UTC]"
+        },
+        {
+            "repo": "config-rotator/backend-component",
+            "ref_type": "tag",
+            "ref_name": "1.0.0",
+            "version": "1a0b35a3cf0416b9ae8017509941334608243840",
+            "last_update": "2025-05-15 (13:05:58) [UTC]"
+        }
+    ]
+}

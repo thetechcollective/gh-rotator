@@ -1,4 +1,4 @@
-name: Rotate  (Dispatch Trigger)
+name: dev deploy
 
 on:
   # This is the 'dev' configuration

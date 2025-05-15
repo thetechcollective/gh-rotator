@@ -1,0 +1,25 @@
+{
+    "qa": [
+        {
+            "repo": "config-rotator/iac-component",
+            "ref_type": "tag",
+            "ref_name": "2.34.56rc",
+            "version": "33d2dfdbe701591236bf692d8b2658f94d4b443a",
+            "last_update": "2025-05-15 (08:31:21) [UTC]"
+        },
+        {
+            "repo": "config-rotator/frontend-component",
+            "ref_type": "tag",
+            "ref_name": "3.4.156rc",
+            "version": "1099f9f61b4c03a2e01c007c7638df659ee21f34",
+            "last_update": "2025-05-15 (08:32:04) [UTC]"
+        },
+        {
+            "repo": "config-rotator/backend-component",
+            "ref_type": "tag",
+            "ref_name": "1.0.34rc",
+            "version": "1a0b35a3cf0416b9ae8017509941334608243840",
+            "last_update": "2025-05-15 (13:05:58) [UTC]"
+        }
+    ]
+}
