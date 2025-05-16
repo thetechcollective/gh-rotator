@@ -16,8 +16,8 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_load_empty_manifest_success(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/no-manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/no-manifests")
         
         # Assertions
         self.assertIsInstance(manifest.get("dev_manifest"), dict)
@@ -26,12 +26,12 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_load_manifest_bad_json(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
         
         # Capture stderr and check for error message
         with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
             with self.assertRaises(SystemExit) as cm:
-                manifest = ProductManifest(config, directory="tests/data/bad_manifests")
+                manifest = ProductManifest(config, directory="./tests/data/bad_manifests")
 
             # Get the captured stderr content
             stderr_output = mock_stderr.getvalue()
@@ -42,8 +42,8 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_load_manifest_from_alternate_source(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/manifests")
 
         # Assertions
         self.assertIsInstance(manifest.get("dev_manifest"), dict)
@@ -52,8 +52,8 @@ class TestProject(unittest.TestCase):
         
     @pytest.mark.unittest
     def test_rotate_manifest_dev_success(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/manifests")
         manifest.rotate(
             event_type="branch",
             event_name="main",
@@ -74,8 +74,8 @@ class TestProject(unittest.TestCase):
         
     @pytest.mark.unittest
     def test_rotate_manifest_qa_success(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/manifests")
         manifest.rotate(
             event_type="tag",
             event_name="1.0.34rc",
@@ -90,8 +90,8 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_rotate_manifest_prod_success(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/manifests")
         manifest.rotate(
             event_type="tag",
             event_name="1.0.0",
@@ -107,8 +107,8 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_rotate_manifest_bad_repo(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/manifests")
         
         # Capture stderr and check for error message
         with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
@@ -128,8 +128,8 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_get_version_success(self):
-        config = ProductConfig(file="tests/data/config-rotator-valid.json")
-        manifest = ProductManifest(config, directory="tests/data/manifests")
+        config = ProductConfig(file="./tests/data/config-rotator-valid.json")
+        manifest = ProductManifest(config, directory="./tests/data/manifests")
         sha1 = manifest.get_version(
             configuration="dev",
             repo="config-rotator/backend-component")
