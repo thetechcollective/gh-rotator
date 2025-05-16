@@ -8,3 +8,5 @@ logs/
 **/.venv/
 _temp.token
 dist/
+coverage.xml
+

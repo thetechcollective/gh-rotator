@@ -1,4 +1,4 @@
-name: Trigger the config rotator
+name: Rotate  (Dispatch Trigger)
 
 on:
   # This is the 'dev' configuration
@@ -62,13 +62,13 @@ jobs:
           elif [[ "${{ github.ref_type }}" == "tag" && "${{ github.ref_name }}" =~ .*rc$ ]]; then
             CONFIGURATION="qa"
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            CONFIGURATION="prod-tag-push"
+            CONFIGURATION="prod"
           fi
 
-          echo "Configuration: $CONFIGURATION".                   >> $GITHUB_STEP_SUMMARY
-          echo "Triggering repository: ${{ github.repository }}"  >> $GITHUB_STEP_SUMMARY
-          echo "Triggering event: ${{ github.ref_name }}"         >> $GITHUB_STEP_SUMMARY
-          echo "Triggering SHA: ${{ github.sha }}"                >> $GITHUB_STEP_SUMMARY
+          echo "Configuration: $CONFIGURATION".                                   >> $GITHUB_STEP_SUMMARY
+          echo "Triggering repository: ${{ github.repository }}"                  >> $GITHUB_STEP_SUMMARY
+          echo "Triggering event: ${{ github.ref_type }}:${{ github.ref_name }}"  >> $GITHUB_STEP_SUMMARY
+          echo "Triggering SHA: ${{ github.sha }}"                                >> $GITHUB_STEP_SUMMARY
 
           # trigger the config rotator on the product repo
           # the PRODUCT_REPO is the repo that contains the product-rotator.json
@@ -81,4 +81,6 @@ jobs:
           PRODUCT_BRANCH=main
 
           echo "On repository: $PRODUCT_REPO"                             >> $GITHUB_STEP_SUMMARY
-          gh workflow run ${PRODUCT_WORKFLOW} --repo ${PRODUCT_REPO} --ref ${PRODUCT_BRANCH} -f triggering_repo=${{ github.repository }} -f triggering_event=${{ github.ref_name }} -f component_sha=${{ github.sha }} -f configuration=${CONFIGURATION} 
+          gh workflow run ${PRODUCT_WORKFLOW} --repo ${PRODUCT_REPO} --ref ${PRODUCT_BRANCH} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }} 
+
+          echo "See https://github.com/${PRODUCT_REPO}/actions/workflows/${PRODUCT_WORKFLOW}"  >> $GITHUB_STEP_SUMMARY

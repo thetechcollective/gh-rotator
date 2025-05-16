@@ -1,13 +1,13 @@
 # Configuration Rotator
-#### Used to support a product repository, which defines and _rotates_ a configuration of a product with a composite product structure — a _multi repo_ product.
+#### Supports a product repository by defining and _rotating_ a configuration of a product with a composite product structure — a _multi-repo_ product.
 
 >[!NOTE]
->**The "configuration rotator" concept is used to forward and update a _composite_ product. _Composite_ defined as a product that is essentially stitched together as a _dependency map_ of individually released components. Every time a new version of _any_ of the components that contribute to the composite product is release, this _rotator_  workflow is triggered to manifest, deploy and test, wether or not this new dependency map is compliant or not – and marks it accordingly.**
+>**The "configuration rotator" concept is used to update and manage a _composite_ product. A _composite_ product is defined as one that is essentially stitched together as a _dependency map_ of individually released components. Every time a new version of _any_ component contributing to the composite product is released, this _rotator_ workflow is triggered to manifest, deploy, and test whether this new dependency map is compliant — marking it accordingly.**
 
-This repo contains the documentation for how to set up the configuration rotaor in a seperate product repoistory, and most importantly at GitGub Command Line extension which will allow you to automate the process.
+This repository contains documentation on setting up the configuration rotator in a separate product repository and, most importantly, a GitHub Command Line extension to automate the process.
 
 ## The basics
-This is an oppiniated flavor of a solution. Others could have done this differently but here's how we work this.
+This is an opinionated solution. Others may approach this differently, but here's how we implement it.
 
 ### A logical map and a manifest 
 Think of how `npm`, `pipenv`, `uv` or `bundle` works
@@ -15,13 +15,13 @@ Think of how `npm`, `pipenv`, `uv` or `bundle` works
 - There's a _configuration_ which describes the generic or logical concept of the product.
 - There's a _manifest_ of how that configuration was interpreted into concrete selection of virsioned components. 
 
-The concept in Config Rotator is similar but now tranfered to a git repository context. So the basic trigger is that _a git repo included in the dependency map is updated_.
+The concept in Config Rotator is similar but now transferred to a Git repository context. The basic trigger is that _a Git repository included in the dependency map is updated_.
 
 The generic map is implemented in a `config-rotator.json` file in the root of the product repository. In python's uv this corresponds to the `dependencies` described in a `pyproject.toml`:
 
 It contains a set of configurations — in our case `dev`, `qa` and `prod`.
 
-Each component is defind by the fully qulified `repo` name, the `ref_type` that should trigger the flow (`branch`|`tag`), and `ref_name` which is a regular expression, which that actual `ref_name` must be match against.
+Each component is defined by the fully qualified `repo` name, the `ref_type` that should trigger the flow (`branch`|`tag`), and `ref_name`, which is a regular expression that the actual `ref_name` must match.
 
 ```json
 {
@@ -79,11 +79,11 @@ Each component is defind by the fully qulified `repo` name, the `ref_type` that 
   }
 ```
 
-The example above is quite generic (and oppinionated) and you can probably use it as it is, only renaming the `repo` elements and leaving everything else as it is.
+The example above is quite generic and you can probably use it as it is, only renaming the `repo` elements and leaving everything else as it is.
 
-The concepts is that the `dev` configuration is rotated by any new commit to `main`. The `qa` configuration is more stable, it's  triggered by releasae candidate SemVer tags with an `rc` suffix (e.g. `1.0.12rc`, `1.0.13rc`. `2.1.23rc` etc) and the `prod` config is triggered by SemVer tags ((e.g. `1.0.0`, `1.0.13`. `2.1.0` etc))
+The concept is that the `dev` configuration is rotated by any new commit to `main`. The `qa` configuration is more stable, triggered by release candidate SemVer tags with an `rc` suffix (e.g., `1.0.12rc`, `1.0.13rc`, `2.1.23rc`, etc.), and the `prod` configuration is triggered by SemVer tags (e.g., `1.0.0`, `1.0.13`, `2.1.0`, etc.).
 
-When the dependency map is interpreted it results in a concrete manifest where the version is noted with the SHA and a note to indicate what resloved the SHA1
+When the dependency map is interpreted, it results in a concrete manifest where the version is noted with the SHA and a note indicating what resolved the SHA1.
 
 Showing the `dev` manifest as an example - staying with the comparison to Python's uv tool this is then the equvivalent to the `uv.lock` file.
 
@@ -124,7 +124,7 @@ So conseqently `dev`, `qa` or `prod` configurations will be created as:
 - `./configurations/prod/config-prod-manifest.json`
 
 ### One flow to trigger everything
-Besides the config-rotator.json config file, the product repo also offers a rotator flow, implemented by using a genric flow (`.github/workflows/rotator.yml`)
+Besides the `config-rotator.json` config file, the product repo also offers a rotator flow, implemented by using a genric flow (`.github/workflows/rotator.yml`)
 
 This flow takes a set of predefined mandatory parameters and have dispatch enabled, which enables that it can be triggered either manually or programatically by using `gh workflow run ...`). 
 
@@ -157,21 +157,40 @@ on:
 ```
 See the entire flow in the [`rotator.yml` template](./templates/product-repo/.github/workflows/rotator.yml)
 
-The flow then passes the four parameters to `gh rotator manifest ...` a subcommand in this GitHub CLI extension. It will check that validity of the parameters according to the a given config. And if a match is found in any of the configurations it will update the corresponding maifest with the instantiated configuration, check it in and pust back to origin.
+The flow then passes the four parameters to `gh rotator manifest ...`, a subcommand in this GitHub CLI extension. It will validate the parameters against the given configuration. If a match is found in any of the configurations, it will update the corresponding manifest with the instantiated configuration, check it in, and push it back to the origin.
 
 ## Infrastructure as code 
 
-After the manifest is updated and stored, contol is passed on to the next jonb in the flow which is desinged to call a generic script, which will read the data in the updated manifest and start to deploy the infrastructure and run the according automated test.
+After the manifest is updated and stored, contol is passed on to the next job in the flow which is desinged to call a generic script, which will read the data in the updated manifest and start to deploy the infrastructure and run the according automated test.
 
 The recommendation is that you build a gh-cli extension script (much like this `gh-rotator` script) see our [py-cli-template](https://github.com/thetechcollective/py-cli-template) for inspiration.
 
 The script should take a manifest file as parameter and build the infrastructure needed and deploy based on that.
 
+### Alternative approach
+It may be, that the IaC, deploy and test procedures for the various configurations are so divers that it makes sense to keep the `rotator.yml` flow generic and simple and then set up seperate jobs to triger on a new manifest file being committed. [`product-rotator-dev.yml`](./templates/product-repo/.github/workflows/product-rotator-dev.yml) is example of this. It's specifically desinged to run when the _dev_ configuration is updated:
+
+
+```yaml
+name: Dev Deploy
+
+on:
+  # This is the 'dev' configuration
+  workflow_dispatch:
+  # trigger on push to main
+  push:
+    branches:
+      - main
+    paths:
+      - 'configurations/dev/config-dev-manifest.json'   
+```
+You can create similar individual flows for the other manifests too.
+
 ## Setup
 
-All the repos mentioned in the product configuration could be setup as callers, which essentially means that they can trigger a configuration rotation.
+All the repos mentioned in the product configuration could be setup as _callers_, which essentially means that they can trigger a configuration rotation.
 
-We hawe simulated a setup in 
+We have simulated a setup in 
 - `config-rotator/product-sample`
 - `config-rotator/iac--component`
 - `config-rotator/frontend--component`
@@ -196,10 +215,8 @@ The following dirs/files will be create automatically
     - `config-qa-manifest.json`
   - `prod`
     - `config-peod-manifest.json`
-  - ...one subfolders with corresponding manifest will be created for each config defined in the `config-rotator.json`
 
-
-
+ 
 ### Caller repos:
 In the example the following repos are defined in the dependency map `config-rotator.json`
 
@@ -211,20 +228,20 @@ These are all candidates to be set up as _callers_ so they can trigger the `rota
 
 The template flow is [rotate-config](./templates/caller/.github/workflows/rotator-config.yml)
 
-The conceptual ideas that each rpos is an _individually releaseble component_  that works in a structure - as opposed to a mone-repo. 
+The conceptual ideas that each repo is an _individually releaseble component_  that works in a structure - as opposed to a mono-repo. 
 
 Each component must define a trust-worthy _self-test_ which — if successful — defines a _potentially shippable_ state. Ideally this is when the commit hits main, so the test should happen as part of a delivery or pull request process. This should trigger the product config rotator to verify the shippableness (cool word eh?)
 
-In our template workfolw we have shown how that can be done in a seperate workflow.
-
+In our template workflow we have shown how that can be done in a seperate workflow.
 
 >[!NOTE]
->One workflow can not trigger another workflow based on the standard `secrets.GITHUB_TOKEN`. To solve this do the following:
->1. In you GitHub Profile define a PAT - Personal Access Tokon**
->   - As Ressource owner selct the organization that host the product-repo
->   - The access can be limited to the same repo
->   - grant read/write to `actions` and read to `contents`and `metadata`
->2. Capture the TOKEN in you clipboard and go each of the caller repos and under _settings_ define a repository action secret named `ROTATOR_TOKEN`
+>#### Generate PAT for the _caller_
+>By design, one workflow can not trigger another workflow based on the standard `secrets.GITHUB_TOKEN`. To solve this the step that triggers the workflow uses `secrets.ROTATOR_TOKEN`. You must create and installe this PAT – Personal Access Token. Do the following:
+>1. In you GitHub Profile define a _finer grained_ PAT - Personal Access Token
+>   - As _ressource owner_ select the organization that host the product-repo
+>   - The _access_ can be limited to the same repo
+>   - _grant_ read/write to `actions` and read to `contents`and `metadata`
+>2. Capture the TOKEN in you clipboard and go to each of the caller repos and under _settings_ define a repository action secret named `ROTATOR_TOKEN`
 
 <details><summary>Detailed screen dumps from GitHub</summary>
 
@@ -234,7 +251,11 @@ In our template workfolw we have shown how that can be done in a seperate workfl
 
 </details>
 
-
-
-
-
+>[!NOTE]
+>#### Generate PAT for the _product repo_
+>A file checked into a repo using the built-in GitHub token `secrets.GITHUB_TOKEN` will not trigger a workflow on GitHub. This is by design. To solve this the step that checks out the repo and the step that checks in the updated manifest uses `secrets.ROTATOR_COMMIT_TOKEN` You must create an install a PAT – Personal Access Token. Do the following:
+>1. In you GitHub Profile define a new _finer grained_ PAT - Personal Access Token
+>   - As _ressource owner_ select the organization that host the product-repo
+>   - The _access_ can be limited to the same repo product-repo
+>   - _grant_ read/write to `contents` and read to `metadata`
+>2. Capture the TOKEN in you clipboard and go to each of the caller repos and under _settings_ define a repository action secret named `ROTATOR_COMMIT_TOKEN`

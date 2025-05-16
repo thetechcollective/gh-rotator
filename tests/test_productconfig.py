@@ -15,13 +15,13 @@ class TestProject(unittest.TestCase):
 
     @pytest.mark.unittest
     def test_load_config_success(self):
-        config = ProductConfig(file = '/workspaces/gh-rotator/tests/data/config-rotator-valid.json')
+        config = ProductConfig(file = './tests/data/config-rotator-valid.json')
         # Assertions
         self.assertRegex(config.get("config_file"), r"config-rotator-valid.json")
 
     @pytest.mark.unittest
     def test_load_explicit_config_success(self):
-        config = ProductConfig(file = '/workspaces/gh-rotator/tests/data/config-rotator-valid.json')
+        config = ProductConfig(file = './tests/data/config-rotator-valid.json')
         # Assertions
         self.assertRegex(config.get("config_file"), r"config-rotator-valid.json")
  
@@ -41,7 +41,7 @@ class TestProject(unittest.TestCase):
         # Capture stderr and check for error message
         with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
             with self.assertRaises(SystemExit) as cm:
-                config = ProductConfig(file="/workspaces/gh-rotator/tests/data/config-rotator-invalid.json")
+                config = ProductConfig(file="./tests/data/config-rotator-invalid.json")
             # Get the captured stderr content
             stderr_output = mock_stderr.getvalue()
 
