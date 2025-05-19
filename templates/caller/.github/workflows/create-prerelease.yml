@@ -1,0 +1,73 @@
+name: Mark shippable  (Dispatch Trigger)
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'SHA to mark as shippable'
+        required: true
+        type: string
+        # Accessible at the caller as ${{github.sha}}
+
+# Add this permissions block
+permissions:
+  contents: write  # This grants write access to repository contents
+
+
+jobs:
+  shippable:
+    runs-on: ubuntu-latest
+    outputs:
+      COMPONENT_SHA: ${{ steps.set_config.outputs.COMPONENT_SHA }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4       
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: main
+          token: ${{ secrets.ROTATOR_COMMIT_TOKEN }}
+          # Fetch all history for all branches and tags
+          # This is required to checking the manifest to the repo
+      
+      - name: Set up git config
+        # This is required to checking the manifest to the repo
+        run: |
+          git config --global user.name "GitHub Action: rotator"
+          git config --global user.email "gh-rotator@thetechcollective.eu"
+
+      - name: Install gh extensions
+        # Visit https://github.com/thetechcollective/gh-rotator for more information
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          command -v python3 || { echo "Python3 is not installed"; exit 1; }
+          gh extension install lakruzz/gh-semver
+
+      - name: Bump patch with rc suffix and create prerelease
+        id: set_config
+        env:
+          GITHUB_TOKEN: ${{ secrets.ROTATOR_COMMIT_TOKEN }}
+        run: |
+          set -x
+ 
+          echo "COMPONENT_SHA=${{ inputs.sha }}" >> $GITHUB_ENV
+          echo "COMPONENT_SHA=${{ inputs.sha }}" >> $GITHUB_OUTPUT
+
+          set +e # Dont fail the job if the command fails
+          TAGS=$(git describe --exact-match ${{ inputs.sha }} 2>/dev/null)
+          set -e
+          echo "TAGS=${TAGS}" >> $GITHUB_STEP_SUMMARY
+
+          if [[ -n "$TAGS" ]] && [[ "$TAGS" =~ ^[0-9]+\.[0-9]+\.[0-9]+rc$ ]]; then
+            echo "The commit '${{ inputs.sha }}' is already marked shippable (release candidate)" >> $GITHUB_STEP_SUMMARY
+            echo "'$TAGS' found for commit ${{ inputs.sha }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Mark **${{ inputs.sha }}** as shippable (release candidate)"  >> $GITHUB_STEP_SUMMARY
+            git checkout  ${{ inputs.sha }}
+            SEMVER=$(gh semver bump --patch --suffix rc)
+            git push --tags origin
+            RELEASE_URL=$(gh release create `gh semver` --latest --verify-tag --prerelease --generate-notes)
+            echo "The commit '${{ inputs.sha }}' is now marked shippable with the '${SEMVER}' tag" >> $GITHUB_STEP_SUMMARY
+            echo "See the prerelease online: ${RELEASE_URL}" >> $GITHUB_STEP_SUMMARY
+          fi

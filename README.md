@@ -234,6 +234,8 @@ Each component must define a trust-worthy _self-test_ which — if successful �
 
 In our template workflow we have shown how that can be done in a seperate workflow.
 
+ANoter usefuyl flow is [create-prerelease](./templates/caller/.github/workflows/create-prerelease.yml) which will take a sha as parameter and make it as a prerelease (create a SemVer tag bumping _ptatch_ with an `rc` – release candidate suffic and markingit as a prerele4ase in GitHub).
+
 >[!NOTE]
 >#### Generate PAT for the _caller_
 >By design, one workflow can not trigger another workflow based on the standard `secrets.GITHUB_TOKEN`. To solve this the step that triggers the workflow uses `secrets.ROTATOR_TOKEN`. You must create and installe this PAT – Personal Access Token. Do the following:
@@ -252,10 +254,15 @@ In our template workflow we have shown how that can be done in a seperate workfl
 </details>
 
 >[!NOTE]
->#### Generate PAT for the _product repo_
+>#### Generate COMMIT PAT for the _product repo_ (rotator.yml) and the _caller repos_ (create-prerelease.yml)
 >A file checked into a repo using the built-in GitHub token `secrets.GITHUB_TOKEN` will not trigger a workflow on GitHub. This is by design. To solve this the step that checks out the repo and the step that checks in the updated manifest uses `secrets.ROTATOR_COMMIT_TOKEN` You must create an install a PAT – Personal Access Token. Do the following:
 >1. In you GitHub Profile define a new _finer grained_ PAT - Personal Access Token
 >   - As _ressource owner_ select the organization that host the product-repo
->   - The _access_ can be limited to the same repo product-repo
->   - _grant_ read/write to `contents` and read to `metadata`
+>   - The _access_ can be limited to the repos that needs it
+>   - _grant_ 
+>       - read/write to `contents` 
+>       - read/write to `actions` 
+>       - read to `metadata`
 >2. Capture the TOKEN in you clipboard and go to each of the caller repos and under _settings_ define a repository action secret named `ROTATOR_COMMIT_TOKEN`
+
+
