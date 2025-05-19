@@ -18,13 +18,7 @@
       "type": "deletion"
     },
     {
-      "type": "non_fast_forward"
-    },
-    {
-      "type": "required_linear_history"
-    },
-    {
-      "type": "required_signatures"
+      "type": "fast_forward"
     },
     {
       "type": "pull_request",
@@ -64,6 +58,9 @@
           }
         ]
       }
+    },
+    {
+      "type": "required_linear_history"
     }
   ],
   "bypass_actors": []
