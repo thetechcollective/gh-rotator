@@ -1,0 +1,50 @@
+
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Ready
+# This workflow is triggered by 'ready' branches 
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - 'ready/*'
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+
+  inherit-statuses:
+    name: Inherit statuses
+    permissions:
+      statuses: write
+      contents: read
+    uses: lakruzz/workflows/.github/workflows/inherit_statuses.yml@experimental
+
+  fast-forward-merge:
+    name: Merge
+    needs:
+      - inherit-statuses
+    permissions:
+      contents: write
+    secrets:
+      READY_PUSHER: ${{ secrets.READY_PUSHER }}
+    uses: lakruzz/workflows/.github/workflows/fast_forward.yml@experimental
+    with:
+      target_branch: main #default is main
+      user_name: "GitHub Action: ready" #required 
+      user_email: "tt-ready@thetechcollective.eu" # required
+
+  close_issue:
+    needs: fast-forward-merge
+    permissions:
+      issues: write
+      contents: write
+    uses: lakruzz/workflows/.github/workflows/close_issue.yml@experimental
+    with:
+      user_name: "GitHub Action: ready" #required 
+      user_email: "tt-ready@thetechcollective.eu" # required
+      delete_issue_branch: true # default is true
+      delete_ready_branch: true # default is true
+

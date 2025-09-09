@@ -1,5 +1,6 @@
 [core]
     editor = nano
+    hooksPath = .githooks
 
 [push]
   default = current
@@ -19,18 +20,9 @@
   forward = !git checkout $(git log --all --ancestry-path ^HEAD --format=format:%H | tail -n 1)
   sha1 = rev-parse --short HEAD
   get-message = log -1 --pretty=%B
-  sweep = "!f() { git fetch --prune && for branch in $(git branch -vv | grep ': gone]' | awk \"{print \\$1}\"); do git branch -D \"$branch\"; done; }; f"
-  sweep-verbose = "!f() { git fetch --prune && branches=$(git branch -vv | grep ': gone]' | awk '{print $1}'); if [ -z \"$branches\" ]; then echo \"No remote-tracking branches to prune.\"; else echo \"Pruning branches: $branches\"; echo \"$branches\" | xargs git branch -d; fi; }; f"
-  note-this = "!f() { git addremove && git recommit && git push --force && gh note \"$(git get-message) ($(git sha1))\"; }; f"
-  prerelease = "!f() { git push --tag && gh release create `gh semver` --latest --verify-tag --prerelease --generate-notes; }; f"
-  my-pr = "!f() { gh pr list --head $(git rev-parse --abbrev-ref HEAD) --json number | jq -r '.[].number'; }; f"
-  pr-automerge = "!f() { gh pr merge $(git my-pr) --rebase --auto; }; f"
-
-  
-
-
-[project]
-  owner   = thetechcollective
-  number  = 12
-  workon  = Status:In Progress
-  deliver = Status:Delivery Initiated
+  sweep = "!f() { git fetch --prune && git checkout main && git pull && for branch in $(git branch -vv | grep ': gone]' | awk \"{print \\$1}\"); do git branch -D \"$branch\"; done; }; f"
+  prerelease = "!f() { git push --tag && gh release create `gh semver --prerelease` --verify-tag --prerelease --notes-file `git root`/$1 ; }; f"
+  release = "!f() { git push --tag && gh release create `gh semver` --latest --verify-tag  --notes-file `git root`/$1; }; f"
+  issue-number = "!f() { git rev-parse --abbrev-ref HEAD | grep -oE '^[0-9]+'; }; f"
+  mark-stable = "!f() { echo git checkout main && git tag -f stable $1 && git push origin --tags --force; }; f"
+  mark-experimental = "!f() { git tag -f experimental $1 && git push origin --tags --force; }; f"

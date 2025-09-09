@@ -1,0 +1,57 @@
+
+name: Wrapup
+# This workflow is triggered on push to branches that begins with a number (issue-branches)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - '[0-9]*'
+
+# No special permissions defined before we need them
+permissions:
+  contents: read
+
+jobs:
+
+  mark-pending:
+    name: Statuses
+    permissions:
+      statuses: write
+      contents: read
+    uses: lakruzz/workflows/.github/workflows/mark_pending.yml@experimental
+    with:
+      statuses: |
+        Pytest + cov
+        Ruff
+        Cspell
+
+  pytest_with_coverage:
+    name: Unit testing
+    needs: mark-pending
+    permissions:
+      statuses: write
+      contents: read
+    uses: lakruzz/workflows/.github/workflows/pytest_with_coverage.yml@experimental
+    with:
+      context: Pytest + cov
+
+  ruff_linting:
+    name: Linting
+    needs: mark-pending
+    permissions:
+      statuses: write
+      contents: read
+    uses: lakruzz/workflows/.github/workflows/ruff_check.yml@experimental
+    with:
+      context: Ruff
+
+  cspel_check:
+    name: Spelling
+    needs: mark-pending
+    permissions:
+      statuses: write
+      contents: read
+    uses: lakruzz/workflows/.github/workflows/cspell_check.yml@experimental
+    with:
+      context: Cspell

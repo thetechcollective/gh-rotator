@@ -34,7 +34,7 @@ if [ -e $(dirname $0)/_temp.token ]; then
     echo "$PREFIX Installing the lakruzz/gh-semver gh cli extension"
     gh extension install lakruzz/gh-semver
     echo "$PREFIX Installing the gh aliases"    
-    gh alias import .gh_alias.yml --clobber
+    gh alias import .devcontainer/.gh_alias.yml --clobber
 
 fi
 

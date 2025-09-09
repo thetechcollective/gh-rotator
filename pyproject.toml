@@ -24,7 +24,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pytest-cov"
+    "pytest-cov",
+    "pytest-mock>=3.14.1",
+    "ruff>=0.12.0",
 ]
 
 build = [
@@ -32,3 +34,159 @@ build = [
     "packaging"
 ]
 
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "temp",
+]
+
+# Use extend-exclude to temporarily exclude files while working on linting one at a time
+# Listed files will NOT be linted during 'ruff check .' 
+# Comment out (or delete). files as you are ready to include them in the linting check
+extend-exclude = [
+    
+    "gh_rotator/gh_rotator.py",
+    "gh_rotator/classes/lazyload.py",
+    "gh_rotator/classes/productconfig.py",
+    "gh_rotator/classes/productmanifest.py",
+    "gh_rotator/tests/",  # Exclude all test files for now
+]
+
+# Generous line length for wide screens
+line-length = 100
+
+indent-width = 4
+target-version = "py313"
+
+[tool.ruff.lint]
+# See https://docs.astral.sh/ruff/rules/
+select = [
+    "B",
+    "I",
+    "ERA",
+    "F",
+    "E",
+    "S",
+    "RUF",
+    "SIM",
+    "UP",
+    "N",
+    "ASYNC",
+    "FBT",
+    "A",
+    "C4",
+    "C90",
+    "DTZ",
+    "T",
+    "ISC",
+    "PIE",
+    "PT",
+    "RET",
+    "TID",
+    "ARG",
+    "PTH",
+    "PERF",
+    "FURB"
+]
+
+ignore = [
+    # Allow use of `assert`
+    "S101",
+    # Allow use of `print()`
+    "T201",
+    # The vast majority of violations for this rule
+    # are comments or f-strings. Since there's 100+
+    # error coming up which have little effect on the
+    # code, I'm ignoring the rule for now. @vemolista
+    "E501",
+    # Known for false positives
+    "S603",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.pytest.ini_options]
+markers = [
+    "smoke: marks tests as smoke tests",
+    "dev: these tests are for development purposes - not necessarily mocked or stable, used by development team in the devcontainer",
+    "unittest: these tests are for unit testing",
+    "integration: test calling external apis",
+    "pbt: property-based tests"
+]
+# Ignore the temp directory during test collection
+testpaths = [
+    "gh_rotator/tests"
+]
+norecursedirs = [
+    "temp",
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".hypothesis"
+]
+log_file = "logs/test.log"
+log_cli = true
+log_cli_level = "WARNING"
+log_cli_format = "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(module)s - Line:%(lineno)d - %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_level = "DEBUG"
+log_format = "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(module)s - Line:%(lineno)d - %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.coverage.run]
+# Include the main CLI script and the classes directory
+source = [
+    "gh_rotator/"
+]
+
+# Exclude test files
+omit = [
+    "*/tests/*",
+    "setup.py",
+    "gh_*.py",
+    "temp/*"
+]
+
+[tool.coverage.report]
+# Fail the build if the coverage is less than threshold
+fail_under = 54
+
+# Skip empty files
+skip_empty = true

@@ -1,9 +1,8 @@
+import datetime
+import json
 import os
 import subprocess
 import sys
-import re
-import json
-import datetime
 import time
 
 # Add directory of this class to the general class_path
@@ -13,6 +12,7 @@ sys.path.append(class_path)
 
 from lazyload import Lazyload
 from productconfig import ProductConfig
+
 
 class ProductManifest(Lazyload):
     """Class used to load and represent the product config (defaults to product-rotator.json in the repo root)"""
@@ -26,8 +26,8 @@ class ProductManifest(Lazyload):
         # and set the config_dir to the root of the git repo
         try:
             self.set('git_root', subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).decode('utf-8').strip())
-        except subprocess.CalledProcessError as e:
-            print(f"⛔️ Error: Not in a git repository. Please run this script from a git repository.", file=sys.stderr)
+        except subprocess.CalledProcessError:
+            print("⛔️ Error: Not in a git repository. Please run this script from a git repository.", file=sys.stderr)
             sys.exit(1)           
             
         if directory is None:
@@ -52,7 +52,7 @@ class ProductManifest(Lazyload):
             with open(self.get(f"{configuration}_file"), 'w') as f:
                 json.dump(self.get(f"{configuration}_manifest"), f, indent=4)
         except Exception as e:
-            print(f"⛔️ Error: Failed to save manifest for {configuration}: {str(e)}", file=sys.stderr)
+            print(f"⛔️ Error: Failed to save manifest for {configuration}: {e!s}", file=sys.stderr)
             sys.exit(1)            
 
         
@@ -82,9 +82,9 @@ class ProductManifest(Lazyload):
         else:
             # The manifest already exist - Load it file
             try:
-                with open(self.get(f"{configuration}_file"), 'r') as f:
+                with open(self.get(f"{configuration}_file")) as f:
                     self.set(f"{configuration}_manifest", json.load(f))
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError:
                 print(f"⛔️ Error: Manifest file {self.get(f"{configuration}_file")} is not a valid JSON file", file=sys.stderr)
                 sys.exit(1)
                 

@@ -8,15 +8,22 @@
 		"ghcr.io/devcontainers/features/common-utils:2": {},
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers/features/python:1": {},
-		"ghcr.io/hspaans/devcontainer-features/pytest:1": {}
+		"ghcr.io/hspaans/devcontainer-features/pytest:2.0.0": {},
+		"ghcr.io/devcontainers-extra/features/npm-packages:1": {
+			"packages": ["cspell", "markdownlint-cli2"]
+		}			
 	},
+	
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-python.debugpy",
 				"ms-python.python",
-				"ms-python.autopep8",
-				"ms-python.vscode-pylance"
+				"ms-python.vscode-pylance",
+				"streetsidesoftware.code-spell-checker",
+				"charliermarsh.ruff",
+				"github.vscode-github-actions",
+				"tamasfe.even-better-toml"
 			]	
 		}
 	},
@@ -27,9 +34,13 @@
 	// Mount the workspace folder one level higher than the git repo
 	"workspaceMount": "source=${localWorkspaceFolder}/../,target=/workspaces,type=bind",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"mounts": [
+		"source=${localEnv:HOME},target=/localhome,type=bind,consistency=cached"
+	],	
 
     "remoteEnv": {
-        "UV_LINK_MODE": "copy"
+        "UV_LINK_MODE": "copy",
+		"UV_VENV_CLEAR": "1"
     }
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

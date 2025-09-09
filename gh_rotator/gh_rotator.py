@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
-import os
 import json
+import os
+import sys
 
 class_path = os.path.dirname(os.path.abspath(__file__)) + "/classes"
 sys.path.append(class_path)
 
-from productmanifest import ProductManifest
 from productconfig import ProductConfig
+from productmanifest import ProductManifest
 
 
 def parse(args=None):
@@ -170,7 +170,7 @@ if __name__ == "__main__":
                 config_data = manifest.get(f"{args.configuration}_manifest")
                 print(json.dumps(config_data, indent=4))
                 sys.exit(0)            
-            except AssertionError as e:
+            except AssertionError:
                 print(f"⛔️ Error: No manifest exists for configuration '{args.configuration}'.", file=sys.stderr)
                 sys.exit(1)
         

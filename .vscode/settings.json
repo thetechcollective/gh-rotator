@@ -1,13 +1,14 @@
 {
     "python.testing.pytestArgs": [
-        "tests"
+        "gh_rotator/tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/classes",
-        "${workspaceFolder}/tests",
-        "${workspaceFolder}"
+        "${workspaceFolder}/gh_rotator/classes",
+        "${workspaceFolder}/gh_rotator/tests",
+        "${workspaceFolder}/gh_rotator"
     ],
-    "python.defaultInterpreterPath": ".venv/bin/python"
+    "ruff.configuration": "${workspaceFolder}/pyproject.toml",
+    "python.defaultInterpreterPath": ".venv/bin/python",
 }

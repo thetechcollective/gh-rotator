@@ -13,7 +13,7 @@ This is an opinionated solution. Others may approach this differently, but here'
 Think of how `npm`, `pipenv`, `uv` or `bundle` works
 
 - There's a _configuration_ which describes the generic or logical concept of the product.
-- There's a _manifest_ of how that configuration was interpreted into concrete selection of virsioned components. 
+- There's a _manifest_ of how that configuration was interpreted into concrete selection of versioned components. 
 
 The concept in Config Rotator is similar but now transferred to a Git repository context. The basic trigger is that _a Git repository included in the dependency map is updated_.
 
@@ -85,7 +85,7 @@ The concept is that the `dev` configuration is rotated by any new commit to `mai
 
 When the dependency map is interpreted, it results in a concrete manifest where the version is noted with the SHA and a note indicating what resolved the SHA1.
 
-Showing the `dev` manifest as an example - staying with the comparison to Python's uv tool this is then the equvivalent to the `uv.lock` file.
+Showing the `dev` manifest as an example - staying with the comparison to Python's uv tool this is then the equivalent to the `uv.lock` file.
 
 ```json
 {
@@ -117,16 +117,16 @@ Showing the `dev` manifest as an example - staying with the comparison to Python
 
 The manifest files are created by the workflow in the product repo at<br/> `./configurations/<CONFIGURATION>/config-<CONFIGURATION>-manifest.json`
 
-So conseqently `dev`, `qa` or `prod` configurations will be created as:
+So consequently `dev`, `qa` or `prod` configurations will be created as:
 
 - `./configurations/dev/config-dev-manifest.json`
 - `./configurations/qa/config-qa-manifest.json`
 - `./configurations/prod/config-prod-manifest.json`
 
 ### One flow to trigger everything
-Besides the `config-rotator.json` config file, the product repo also offers a rotator flow, implemented by using a genric flow (`.github/workflows/rotator.yml`)
+Besides the `config-rotator.json` config file, the product repo also offers a rotator flow, implemented by using a generic flow (`.github/workflows/rotator.yml`)
 
-This flow takes a set of predefined mandatory parameters and have dispatch enabled, which enables that it can be triggered either manually or programatically by using `gh workflow run ...`). 
+This flow takes a set of predefined mandatory parameters and have dispatch enabled, which enables that it can be triggered either manually or programmatically by using `gh workflow run ...`). 
 
 The parameters are defines as:
 
@@ -161,14 +161,14 @@ The flow then passes the four parameters to `gh rotator manifest ...`, a subcomm
 
 ## Infrastructure as code 
 
-After the manifest is updated and stored, contol is passed on to the next job in the flow which is desinged to call a generic script, which will read the data in the updated manifest and start to deploy the infrastructure and run the according automated test.
+After the manifest is updated and stored, control is passed on to the next job in the flow which is designed to call a generic script, which will read the data in the updated manifest and start to deploy the infrastructure and run the according automated test.
 
 The recommendation is that you build a gh-cli extension script (much like this `gh-rotator` script) see our [py-cli-template](https://github.com/thetechcollective/py-cli-template) for inspiration.
 
 The script should take a manifest file as parameter and build the infrastructure needed and deploy based on that.
 
 ### Alternative approach
-It may be, that the IaC, deploy and test procedures for the various configurations are so divers that it makes sense to keep the `rotator.yml` flow generic and simple and then set up seperate jobs to triger on a new manifest file being committed. [`product-rotator-dev.yml`](./templates/product-repo/.github/workflows/product-rotator-dev.yml) is example of this. It's specifically desinged to run when the _dev_ configuration is updated:
+It may be, that the IaC, deploy and test procedures for the various configurations are so divers that it makes sense to keep the `rotator.yml` flow generic and simple and then set up separate jobs to trigger on a new manifest file being committed. [`product-rotator-dev.yml`](./templates/product-repo/.github/workflows/product-rotator-dev.yml) is example of this. It's specifically designed to run when the _dev_ configuration is updated:
 
 
 ```yaml
@@ -214,7 +214,7 @@ The following dirs/files will be create automatically
   - `qa`
     - `config-qa-manifest.json`
   - `prod`
-    - `config-peod-manifest.json`
+    - `config-prod-manifest.json`
 
  
 ### Caller repos:
@@ -228,19 +228,19 @@ These are all candidates to be set up as _callers_ so they can trigger the `rota
 
 The template flow is [rotate-config](./templates/caller/.github/workflows/rotator-config.yml)
 
-The conceptual ideas that each repo is an _individually releaseble component_  that works in a structure - as opposed to a mono-repo. 
+The conceptual ideas that each repo is an _individually releasable component_  that works in a structure - as opposed to a mono-repo. 
 
 Each component must define a trust-worthy _self-test_ which — if successful — defines a _potentially shippable_ state. Ideally this is when the commit hits main, so the test should happen as part of a delivery or pull request process. This should trigger the product config rotator to verify the shippableness (cool word eh?)
 
-In our template workflow we have shown how that can be done in a seperate workflow.
+In our template workflow we have shown how that can be done in a separate workflow.
 
-ANoter usefuyl flow is [create-prerelease](./templates/caller/.github/workflows/create-prerelease.yml) which will take a sha as parameter and make it as a prerelease (create a SemVer tag bumping _ptatch_ with an `rc` – release candidate suffic and markingit as a prerele4ase in GitHub).
+Another useful flow is [create-prerelease](./templates/caller/.github/workflows/create-prerelease.yml) which will take a sha as parameter and make it as a prerelease (create a SemVer tag bumping _patch_ with an `rc` – release candidate suffix and marking it as a prerelease in GitHub).
 
 >[!NOTE]
 >#### Generate PAT for the _caller_
->By design, one workflow can not trigger another workflow based on the standard `secrets.GITHUB_TOKEN`. To solve this the step that triggers the workflow uses `secrets.ROTATOR_TOKEN`. You must create and installe this PAT – Personal Access Token. Do the following:
+>By design, one workflow can not trigger another workflow based on the standard `secrets.GITHUB_TOKEN`. To solve this the step that triggers the workflow uses `secrets.ROTATOR_TOKEN`. You must create and installer this PAT – Personal Access Token. Do the following:
 >1. In you GitHub Profile define a _finer grained_ PAT - Personal Access Token
->   - As _ressource owner_ select the organization that host the product-repo
+>   - As _resource owner_ select the organization that host the product-repo
 >   - The _access_ can be limited to the same repo
 >   - _grant_ read/write to `actions` and read to `contents`and `metadata`
 >2. Capture the TOKEN in you clipboard and go to each of the caller repos and under _settings_ define a repository action secret named `ROTATOR_TOKEN`
@@ -257,7 +257,7 @@ ANoter usefuyl flow is [create-prerelease](./templates/caller/.github/workflows/
 >#### Generate COMMIT PAT for the _product repo_ (rotator.yml) and the _caller repos_ (create-prerelease.yml)
 >A file checked into a repo using the built-in GitHub token `secrets.GITHUB_TOKEN` will not trigger a workflow on GitHub. This is by design. To solve this the step that checks out the repo and the step that checks in the updated manifest uses `secrets.ROTATOR_COMMIT_TOKEN` You must create an install a PAT – Personal Access Token. Do the following:
 >1. In you GitHub Profile define a new _finer grained_ PAT - Personal Access Token
->   - As _ressource owner_ select the organization that host the product-repo
+>   - As _resource owner_ select the organization that host the product-repo
 >   - The _access_ can be limited to the repos that needs it
 >   - _grant_ 
 >       - read/write to `contents` 

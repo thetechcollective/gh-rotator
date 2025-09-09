@@ -1,27 +1,38 @@
-import unittest
 import os
 import sys
-from unittest.mock import patch, MagicMock
-from unittest.mock import Mock
+import unittest
 from io import StringIO
+from unittest.mock import patch
+
 import pytest
 
-class_path = os.path.dirname(os.path.abspath(__file__)) + "/../classes"
+# Setup paths for imports and test data
+test_dir = os.path.dirname(os.path.abspath(__file__))
+class_path = os.path.join(test_dir, "../classes")
 sys.path.append(class_path)
+
+# Define data path relative to this test file
+TEST_DATA_PATH = os.path.join(test_dir, "data")
 
 from productconfig import ProductConfig
 
+
 class TestProject(unittest.TestCase):
+    
+    def setUp(self):
+        """Set up test variables before each test"""
+        self.valid_config_path = os.path.join(TEST_DATA_PATH, "config-rotator-valid.json")
+        self.invalid_config_path = os.path.join(TEST_DATA_PATH, "config-rotator-invalid.json")
 
     @pytest.mark.unittest
     def test_load_config_success(self):
-        config = ProductConfig(file = './tests/data/config-rotator-valid.json')
+        config = ProductConfig(file = self.valid_config_path)
         # Assertions
         self.assertRegex(config.get("config_file"), r"config-rotator-valid.json")
 
     @pytest.mark.unittest
     def test_load_explicit_config_success(self):
-        config = ProductConfig(file = './tests/data/config-rotator-valid.json')
+        config = ProductConfig(file = self.valid_config_path)
         # Assertions
         self.assertRegex(config.get("config_file"), r"config-rotator-valid.json")
  
@@ -41,7 +52,7 @@ class TestProject(unittest.TestCase):
         # Capture stderr and check for error message
         with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
             with self.assertRaises(SystemExit) as cm:
-                config = ProductConfig(file="./tests/data/config-rotator-invalid.json")
+                config = ProductConfig(file=self.invalid_config_path)
             # Get the captured stderr content
             stderr_output = mock_stderr.getvalue()
 
