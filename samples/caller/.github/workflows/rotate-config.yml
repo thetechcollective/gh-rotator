@@ -1,0 +1,26 @@
+name: Rotate Product Configuration
+
+on:
+  workflow_dispatch:  
+  push:
+    branches:
+      - main
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  rotate-config:
+    name: Rotate product config
+    permissions:
+      actions: write
+    
+    # Pass secrets separately from inputs, following the pattern in ready.yml
+    secrets:
+      token: ${{ secrets.ROTATOR_TOKEN }}
+    
+    uses: thetechcollective/gh-rotator/.github/workflows/rotate-config.yml@experimental
+    
+    with:
+      product-repo: config-rotator/product-sample
+      product-workflow: .github/workflows/rotator.yml
+      rotator-pin: experimental

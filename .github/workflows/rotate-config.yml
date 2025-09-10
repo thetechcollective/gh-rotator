@@ -25,16 +25,15 @@ on:
         type: string
         default: '.github/workflows/rotator.yml'
         description: 'The workflow file in the product-repo to trigger - default is .github/workflows/rotator.yml'
-      token:
-        required: true
-        type: string
-        default: ''
-        description: 'The secret containing a PAT with repo and workflow permissions to trigger the product workflow. Must have actions:write permission'
       rotator-pin:
         required: false
         type: string
         default: ''
         description: 'Pin the gh-rotator GitHub CLIL extension to a specific version - default is not pinned (main/LATEST)'
+    secrets:
+      token:
+        required: true
+        description: 'A PAT with repo and workflow permissions to trigger the product workflow. Must have actions:write permission'
 
 permissions:
   actions: write
@@ -84,7 +83,7 @@ jobs:
 
       - name: trigger the config rotator on the product repo
         env:
-          GITHUB_TOKEN: ${{ inputs.token }}
+          GITHUB_TOKEN: ${{ secrets.token }}
         run: |
 
           # Determine which configuration triggered this workflow
