@@ -45,18 +45,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.token }}
         run: |
-          echo "Calling rotator flow: ${{ inputs.product-workflow }}".            >> $GITHUB_STEP_SUMMARY
-          echo "On repository: ${{ inputs.product-repo }}"                        >> $GITHUB_STEP_SUMMARY
+          echo "Calling flow:  ${{ inputs.product-workflow }}"                    >> $GITHUB_STEP_SUMMARY
+          echo "on branch:     ${{ inputs.product-branch }}"                      >> $GITHUB_STEP_SUMMARY
+          echo "In repository: ${{ inputs.product-repo }}"                        >> $GITHUB_STEP_SUMMARY
           echo "with arguments"                                                   >> $GITHUB_STEP_SUMMARY
           echo "  repository: ${{ github.repository }}"                           >> $GITHUB_STEP_SUMMARY
           echo "  event_type: ${{ github.ref_type }}"                             >> $GITHUB_STEP_SUMMARY
           echo "  event_name: ${{ github.ref_name }}"                             >> $GITHUB_STEP_SUMMARY
           echo "  sha:        ${{ github.sha }}"                                  >> $GITHUB_STEP_SUMMARY
   
+
+          gh workflow run ${{ inputs.product-workflow }} --repo ${{ inputs.product-repo }} --ref ${{ inputs.product-branch }} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }}
+
           PRODUCT_WORKFLOW="${{ inputs.product-workflow }}"
-          PRODUCT_BRANCH=main
-
-          gh workflow run ${{ inputs.product-workflow }} --repo ${{ inputs.product-repo }} --ref ${PRODUCT_BRANCH} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }}
-
           # ${PRODUCT_WORKFLOW##*/} is a bash parameter expansion that extracts just the filename from a path
           echo "See https://github.com/${{ inputs.product-repo }}/actions/workflows/${PRODUCT_WORKFLOW##*/}"  >> $GITHUB_STEP_SUMMARY
