@@ -44,10 +44,14 @@ jobs:
     steps:
       - name: Validate configuration input
         run: |
-          if [[ "${{ inputs.configuration }}" != "dev" && "${{ inputs.configuration }}" != "qa" && "${{ inputs.configuration }}" != "prod" ]]; then
-            echo "Error: Invalid configuration value. Must be one of: dev, qa, prod" >> $GITHUB_STEP_SUMMARY
-            echo "Received: ${{ inputs.configuration }}"                             >> $GITHUB_STEP_SUMMARY
+          if [[ -n "${{ inputs.configuration }}" && "${{ inputs.configuration }}" != "dev" && "${{ inputs.configuration }}" != "qa" && "${{ inputs.configuration }}" != "prod" ]]; then
+            echo "Error: Invalid configuration value. Must be one of: dev, qa, prod (or empty)" >> $GITHUB_STEP_SUMMARY
+            echo "Received: ${{ inputs.configuration }}"                                        >> $GITHUB_STEP_SUMMARY
             exit 1
+          fi
+          
+          if [[ -n "${{ inputs.configuration }}" ]]; then
+            echo "Using provided configuration: ${{ inputs.configuration }}" >> $GITHUB_STEP_SUMMARY
           fi
           
       - name: Checkout the repository
