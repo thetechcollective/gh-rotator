@@ -90,31 +90,31 @@ jobs:
           # Determine which configuration triggered this workflow
           # Note to self - this part should be considered the default - but skip it if it's provided 
           # in inputs.configuration
-          CONFIGURATION=""
-          if [[ "${{ github.ref_type }}" == "branch" && "${{ github.ref_name }}" == "main" ]]; then
-            CONFIGURATION="dev"
-          elif [[ "${{ github.ref_type }}" == "tag" && "${{ github.ref_name }}" =~ .*rc$ ]]; then
-            CONFIGURATION="qa"
-          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            CONFIGURATION="prod"
+
+          # Check if configuration is provided in inputs, otherwise determine from context
+          if [[ -n "${{ inputs.configuration }}" ]]; then
+            CONFIGURATION="${{ inputs.configuration }}"
+          else
+            CONFIGURATION=""
+            if [[ "${{ github.ref_type }}" == "branch" && "${{ github.ref_name }}" == "main" ]]; then
+              CONFIGURATION="dev"
+            elif [[ "${{ github.ref_type }}" == "tag" && "${{ github.ref_name }}" =~ .*rc$ ]]; then
+              CONFIGURATION="qa"
+            elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+              CONFIGURATION="prod"
+            fi
           fi
 
-          echo "Configuration: ${{ inputs.configuration }}.                       >> $GITHUB_STEP_SUMMARY
+          echo "Configuration: ${CONFIGURATION}"                                  >> $GITHUB_STEP_SUMMARY
           echo "Triggering repository: ${{ github.repository }}"                  >> $GITHUB_STEP_SUMMARY
           echo "Triggering event: ${{ github.ref_type }} ${{ github.ref_name }}"  >> $GITHUB_STEP_SUMMARY
           echo "Triggering SHA: ${{ github.sha }}"                                >> $GITHUB_STEP_SUMMARY
 
-          # trigger the config rotator on the product repo
-          # the PRODUCT_REPO is the repo that contains the product-rotator.json
-          # the PRODUCT_WORKFLOW is the workflow that will be triggered
-          # the PRODUCT_BRANCH is the branch that will be used to trigger the workflow
-          # You should change the PRODUCT_REPO variable to your own product repo - the rest of the command stays the same
-
-          
-          PRODUCT_WORKFLOW=.github/workflows/rotator.yml
+          PRODUCT_WORKFLOW="${{ inputs.product-workflow }}"
           PRODUCT_BRANCH=main
 
-          echo "On repository: $PRODUCT_REPO"                             >> $GITHUB_STEP_SUMMARY
-          gh workflow run ${PRODUCT_WORKFLOW} --repo ${{ inputs.configuration }} --ref ${PRODUCT_BRANCH} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }} 
+          echo "On repository: ${{ inputs.product-repo }}"                >> $GITHUB_STEP_SUMMARY
+          gh workflow run ${{ inputs.product-workflow }} --repo ${{ inputs.product-repo }} --ref ${PRODUCT_BRANCH} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }} -f configuration=${CONFIGURATION}
 
-          echo "See https://github.com/${PRODUCT_REPO}/actions/workflows/${PRODUCT_WORKFLOW}"  >> $GITHUB_STEP_SUMMARY
+          # ${PRODUCT_WORKFLOW##*/} is a bash parameter expansion that extracts just the filename from a path
+          echo "See https://github.com/${{ inputs.product-repo }}/actions/workflows/${PRODUCT_WORKFLOW##*/}"  >> $GITHUB_STEP_SUMMARY
