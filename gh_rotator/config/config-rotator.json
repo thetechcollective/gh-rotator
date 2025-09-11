@@ -20,17 +20,17 @@
       {
         "repo": "config-rotator/iac-component",
         "ref_type": "tag",
-        "ref_name": "\\d+\\.\\d+\\.\\d+rc"
+        "ref_name": "\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?"
       },
       {
         "repo": "config-rotator/frontend-component",
         "ref_type": "tag",
-        "ref_name": "\\d+\\.\\d+\\.\\d+rc"
+        "ref_name": "\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?"
       },
       {
         "repo": "config-rotator/backend-component",
         "ref_type": "tag",
-        "ref_name": "\\d+\\.\\d+\\.\\d+rc"
+        "ref_name": "\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?"
       }
     ],
     "prod": [
