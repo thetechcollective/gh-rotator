@@ -28,9 +28,31 @@ class ProductConfig(Lazyload):
           
         # Set the default config file 
         if file is None:
-            # use the default config file
-            file = os.path.join(self.get("git_root"), 'config-rotator.json')
-        self.set('config_file', file)
+            # Try to use the default config file in the repo
+            repo_config = os.path.join(
+                self.get("git_root"), 'config-rotator.json')
+            if os.path.exists(repo_config):
+                self.set('config_file', repo_config)
+            else:
+                # Fall back to the built-in default config
+                default_config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                   'config', 'config-rotator.json')
+                if os.path.exists(default_config_path):
+                    self.set('config_file', default_config_path)
+                else:
+                    print(f"Error: No configuration file found", file=sys.stderr)
+                    sys.exit(1)
+        else:
+            # If user explicitly specified a config file, treat it as relative to git root
+            relative_path = os.path.join(self.get("git_root"), file)
+
+            if os.path.exists(relative_path):
+                self.set('config_file', relative_path)
+            else:
+                print(
+                    f"Error: Config file '{relative_path}' not found", file=sys.stderr)
+                sys.exit(1)
+
         self.set('config', None)
         
         # Load the config file
@@ -39,21 +61,18 @@ class ProductConfig(Lazyload):
 
     def __load_config(self):
         """Load the config file and set the config property"""
-        # Check if the file exists
-        if not os.path.exists(self.get('config_file')):
-            print(f"⛔️ Error: Config file {self.get('config_file')} not found", file=sys.stderr)
-            sys.exit(1)
-        
-        # Load the config file
+        # Config file existence was already checked in __init__
+        # Just load the file and handle JSON errors
         try:
             with open(self.get('config_file')) as f:
                 self.set('config', json.load(f))
         except json.JSONDecodeError:
-            print(f"⛔️ Error: Config file {self.get('config_file')} is not a valid JSON file", file=sys.stderr)
+            print(
+                f"Error: Config file {self.get('config_file')} is not a valid JSON file", file=sys.stderr)
             sys.exit(1)
-    
-    def get_config_name(self, repo=str, event_name=str, event_type=str, verbose=False):
-        """Look up the configuration name for the given repo, event_name and event_type"""      
+
+    def get_config_name(self, repo=str, event_name=str, event_type=str):
+        """Look up the configuration name for the given repo, event_name and event_type"""
         found_config = None
 
         for configuration, repos in self.get('config').items():
