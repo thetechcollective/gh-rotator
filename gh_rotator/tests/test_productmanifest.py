@@ -1,5 +1,3 @@
-from productconfig import ProductConfig
-from productmanifest import ProductManifest
 import unittest
 import os
 import sys
@@ -14,6 +12,9 @@ import pytest
 test_dir = os.path.dirname(os.path.abspath(__file__))
 class_path = os.path.join(test_dir, "../classes")
 sys.path.append(class_path)
+
+from productconfig import ProductConfig
+from productmanifest import ProductManifest
 
 # Define data paths relative to this test file
 TEST_DATA_PATH = os.path.join(test_dir, "data")
