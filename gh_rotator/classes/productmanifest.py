@@ -90,7 +90,17 @@ class ProductManifest(Lazyload):
                 
 
     def rotate(self, repo=str, event_name=str, event_type=str, sha=str, verbose=False):
-        """Rotate the manifest for the given configuration"""
+        """Rotate the manifest for the given configuration
+
+        Args:
+            repo (str): The fully qualified name (owner/repo) of the repo that fired the event
+            event_name (str): The event name that triggered the run (branch or tag name)
+            event_type (str): The event type that triggered the run (branch|tag)
+            sha (str): The sha to set for the repo in the manifest
+            verbose (bool, optional): Whether to print verbose output. Defaults to False.
+        Returns:
+            configuration (str): The configuration name that was rotated (None if failed)
+        """
         # The constructor already loaded the manifests, so were good to assume it's healthy
         
         configuration = self.get('config').get_config_name(repo, event_name, event_type, verbose)
@@ -132,10 +142,17 @@ class ProductManifest(Lazyload):
                 print(f"The file '{manifest_file}' is updated with content show below, but it is not checked in yet.")
                 print(json.dumps(self.get(f'{configuration}_manifest'), indent=4))
                           
-        return True
+        return configuration
     
-    def get_version(self, configuration=str, repo=str, verbose=False):
-        """Get the version of a repo in the given configuration"""
+    def get_version(self, configuration=str, repo=str):
+        """Get the version of a repo in the given configuration
+        
+        Args:
+            configuration (str): The configuration to query the manifest for
+            repo (str): The fully qualified name (owner/repo) of the repo to look up
+        Returns:
+            version (str): The version of the repo in the manifest (Exit with error if not found)
+        """
         # The constructor already loaded the manifests, for were good to assume it's healthy
         
         # Check if the repo exists in the manifest
@@ -149,7 +166,6 @@ class ProductManifest(Lazyload):
         
         print(f"⛔️ Error: Repository {repo} not found in configuration {configuration}", file=sys.stderr)
         sys.exit(1)
-        return None
     
     
         
