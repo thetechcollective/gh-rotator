@@ -101,12 +101,8 @@ jobs:
           echo "Triggering event was: **\`${{ inputs.event_type }}:${{ inputs.event_name }}\`**" >> $GITHUB_STEP_SUMMARY
           echo "Triggering commit was: [**\`${{ inputs.sha }}\`**](https://github.com/${{ inputs.repo }}/commit/${{ inputs.sha }})" >> $GITHUB_STEP_SUMMARY
 
-          # Set env vars from inputs and also set them as outputs
-          echo "COMPONENT_SHA=${{ inputs.sha }}" >> $GITHUB_ENV
-          echo "COMPONENT_SHA=${{ inputs.sha }}" >> $GITHUB_OUTPUT
-
           CONFIGURATION=$(gh rotator config --repo ${{ inputs.repo }} --event-type ${{ inputs.event_type }} --event-name ${{ inputs.event_name }})
-          echo "Configuration to update: $CONFIGURATION" >> $GITHUB_OUTPUT
+          echo "Configuration to update: $CONFIGURATION" >> $GITHUB_STEP_SUMMARY
           echo "CONFIGURATION=$CONFIGURATION" >> $GITHUB_ENV
 
           gh rotator lock --repo ${{ inputs.repo }} --event-type ${{ inputs.event_type }} --event-name ${{ inputs.event_name }} --sha ${{ inputs.sha }} --verbose
