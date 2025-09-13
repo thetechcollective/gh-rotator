@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-# Function to check if python is installed
-ensure_python3() {
-    if ! command -v python3 &> /dev/null; then
-        echo "Python3 not found. Please install Python3."
-        exit 1
-    fi
-}
+set -euo pipefail
 
-# Execute the Python script directly
-ensure_python3
-python3 $(dirname "$0")/gh_rotator/gh_rotator.py "$@"
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &>/dev/null && pwd )"
+PYTHON="${PYTHON:-python3}"
+
+command -v "$PYTHON" >/dev/null \
+  || { echo "🛑  $PYTHON not found in PATH"; exit 1; }
+
+# Ensure this checkout wins on the import path
+export PYTHONPATH="$SCRIPT_DIR${PYTHONPATH:+:$PYTHONPATH}"
+
+exec "$PYTHON" -m gh_rotator "$@"
