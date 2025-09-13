@@ -3,11 +3,8 @@
 import sys
 from pathlib import Path
 
-# Add the modules directory to the path
-sys.path.append(str(Path(__file__).parent))
-
-from modules.rotator_handlers import COMMAND_HANDLERS
-from modules.rotator_parser import rotator_parse
+from gh_rotator.modules.rotator_handlers import COMMAND_HANDLERS
+from gh_rotator.modules.rotator_parser import rotator_parse
 
 
 def main():

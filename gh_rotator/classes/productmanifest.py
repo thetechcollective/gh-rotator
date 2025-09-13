@@ -1,5 +1,4 @@
-from productconfig import ProductConfig
-from lazyload import Lazyload
+
 import datetime
 import json
 import os
@@ -7,10 +6,8 @@ import subprocess
 import sys
 import time
 
-# Add directory of this class to the general class_path
-# to allow import of sibling classes
-class_path = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(class_path)
+from gh_rotator.classes.productconfig import ProductConfig
+from gh_rotator.classes.lazyload import Lazyload
 
 
 class ProductManifest(Lazyload):
