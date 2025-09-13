@@ -83,7 +83,7 @@ class ProductConfig(Lazyload):
         for configuration, repos in self.get('config').items():
             for repo_config in repos:
                 if (
-                    repo_config["repo"] == repo and
+                    re.match(repo_config["repo"], repo) and
                     repo_config["ref_type"] == event_type and
                     re.match(repo_config["ref_name"], event_name)
                 ):
