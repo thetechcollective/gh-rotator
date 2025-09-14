@@ -11,7 +11,7 @@
             "name": "Python Debugger: gh_rotator with Arguments (in current workspace)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/gh_rotator.py",
+            "program": "-m gh_rotator",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": "${command:pickArgs}"

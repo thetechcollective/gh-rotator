@@ -1,0 +1,59 @@
+name: Rotate  (Dispatch Trigger)
+
+on:
+  workflow_call:
+    inputs:
+
+      product-repo:
+        required: true
+        type: string
+        default: ''
+        description: 'The repository to trigger. This is the repo that contains the product-rotator.json file'
+
+      product-workflow:
+        required: false
+        type: string
+        default: '.github/workflows/rotator.yml'
+        description: 'The workflow file in the product-repo to trigger - default is .github/workflows/rotator.yml
+                      it must accept the following inputs:       
+                          repo: (owner/repo)     
+                          event_type:(branch|tag)
+                          event_name: (name of the branch or tag accessible as github.ref_name)
+                          sha: (SHA of the commit to lock in the manifest accessible as github.sha)'
+      product-branch:
+        required: false
+        type: string
+        default: 'main'
+        description: 'The branch in the product-repo that holds the workflow file - default is main'
+
+    secrets:
+      token:
+        required: true
+        description: 'A PAT with actions:write permissions. Used to trigger the product workflow'
+  
+jobs:
+  trigger-rotation:
+    runs-on: ubuntu-latest
+    steps:          
+      - name: Checkout the repository
+        uses: actions/checkout@v5 
+
+      - name: trigger the config rotator on the product repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        run: |
+          echo "Calling flow:  ${{ inputs.product-workflow }}"                    >> $GITHUB_STEP_SUMMARY
+          echo "on branch:     ${{ inputs.product-branch }}"                      >> $GITHUB_STEP_SUMMARY
+          echo "In repository: ${{ inputs.product-repo }}"                        >> $GITHUB_STEP_SUMMARY
+          echo "with arguments"                                                   >> $GITHUB_STEP_SUMMARY
+          echo "  repository: ${{ github.repository }}"                           >> $GITHUB_STEP_SUMMARY
+          echo "  event_type: ${{ github.ref_type }}"                             >> $GITHUB_STEP_SUMMARY
+          echo "  event_name: ${{ github.ref_name }}"                             >> $GITHUB_STEP_SUMMARY
+          echo "  sha:        ${{ github.sha }}"                                  >> $GITHUB_STEP_SUMMARY
+  
+
+          gh workflow run ${{ inputs.product-workflow }} --repo ${{ inputs.product-repo }} --ref ${{ inputs.product-branch }} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }}
+
+          PRODUCT_WORKFLOW="${{ inputs.product-workflow }}"
+          # ${PRODUCT_WORKFLOW##*/} is a bash parameter expansion that extracts just the filename from a path
+          echo "See https://github.com/${{ inputs.product-repo }}/actions/workflows/${PRODUCT_WORKFLOW##*/}"  >> $GITHUB_STEP_SUMMARY

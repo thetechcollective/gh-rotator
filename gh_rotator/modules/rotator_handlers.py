@@ -2,15 +2,9 @@
 
 import json
 import sys
-from pathlib import Path
 
-# Add the parent directory to the path to find the classes
-parent_dir = Path(__file__).parent.parent
-sys.path.append(str(parent_dir))
-
-# Import classes after path is set up
-from classes.productconfig import ProductConfig  # noqa: E402
-from classes.productmanifest import ProductManifest  # noqa: E402
+from gh_rotator.classes.productconfig import ProductConfig
+from gh_rotator.classes.productmanifest import ProductManifest
 
 
 def handle_lock(args):

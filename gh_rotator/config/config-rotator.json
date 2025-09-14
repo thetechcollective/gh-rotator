@@ -1,0 +1,23 @@
+{
+    "dev": [
+      {
+        "repo": "[a-zA-Z0-9-_]+\\/[a-zA-Z0-9-_]+",
+        "ref_type": "branch",
+        "ref_name": "main"
+      }
+    ],
+    "qa": [
+      {
+        "repo": "[a-zA-Z0-9-_]+\\/[a-zA-Z0-9-_]+",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?"
+      }
+    ],
+    "prod": [
+      {
+        "repo": "[a-zA-Z0-9-_]+\\/[a-zA-Z0-9-_]+",
+        "ref_type": "tag",
+        "ref_name": "\\d+\\.\\d+\\.\\d+"
+      }
+    ]
+  }

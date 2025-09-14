@@ -1,0 +1,123 @@
+# This workflow is a callable flow - designed to be called via the "workflow_call" 
+# event from another workflow.
+# Like a github acttion it accepts inputs.
+# Set it up in all the repos, that are mentioned in the product configuration
+# It will trigger a rotation of the product manifests in the product repo
+# The product repo is the repo that contains the product-rotator.json file
+
+name: Rotate  (Dispatch Trigger)
+
+on:
+  workflow_call:
+    inputs:
+      configuration:
+        required: false
+        type: string
+        default: ''
+        description: 'Configuration to rotate - must be one of [dev|qa|prod] will be determined from context if not provided'
+      product-repo:
+        required: true
+        type: string
+        default: ''
+        description: 'The repository containing the product-rotator.json file'
+      product-workflow:
+        required: false
+        type: string
+        default: '.github/workflows/rotator.yml'
+        description: 'The workflow file in the product-repo to trigger - default is .github/workflows/rotator.yml'
+      rotator-pin:
+        required: false
+        type: string
+        default: ''
+        description: 'Pin the gh-rotator GitHub CLIL extension to a specific version - default is not pinned (main/LATEST)'
+    secrets:
+      token:
+        required: true
+        description: 'A PAT with repo and workflow permissions to trigger the product workflow. Must have actions:write permission'
+
+permissions:
+  actions: write
+  
+jobs:
+  create-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate configuration input
+        run: |
+          if [[ -n "${{ inputs.configuration }}" && "${{ inputs.configuration }}" != "dev" && "${{ inputs.configuration }}" != "qa" && "${{ inputs.configuration }}" != "prod" ]]; then
+            echo "Error: Invalid configuration value. Must be one of: dev, qa, prod (or empty)" >> $GITHUB_STEP_SUMMARY
+            echo "Received: ${{ inputs.configuration }}"                                        >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          if [[ -n "${{ inputs.configuration }}" ]]; then
+            echo "Using provided configuration: ${{ inputs.configuration }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      
+      - name: Ensure Python
+        # assume python3 is installed, it is in ubuntu-latest, 
+        # but if you are using a different image, you may need to install it
+        run: |
+          if command -v python3 &> /dev/null; then
+            PYTHON_VERSION=$(python3 --version)
+            echo "Using Python version: $PYTHON_VERSION" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ERROR: Python3 is not installed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Install gh extension 'thetechcollective/gh-rotator'
+        # Visit https://github.com/thetechcollective/gh-rotator for more information
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} #standard token is fine for installing the extension
+        run: |
+          if [[ -n "${{ inputs.rotator-pin }}" ]]; then
+            gh extension install thetechcollective/gh-rotator --pin ${{ inputs.rotator-pin }}
+            echo "Installed thetechcollective/gh-rotator pinned to: ${{ inputs.rotator-pin }}" >> $GITHUB_STEP_SUMMARY
+          else
+            gh extension install thetechcollective/gh-rotator
+            echo "Installed thetechcollective/gh-rotator from main/LATEST" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: trigger the config rotator on the product repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        run: |
+
+          # Determine which configuration triggered this workflow
+          # Note to self - this part should be considered the default - but skip it if it's provided 
+          # in inputs.configuration
+
+          # Check if configuration is provided in inputs, otherwise determine from context
+          if [[ -n "${{ inputs.configuration }}" ]]; then
+            CONFIGURATION="${{ inputs.configuration }}"
+          else
+            CONFIGURATION=""
+            if [[ "${{ github.ref_type }}" == "branch" && "${{ github.ref_name }}" == "main" ]]; then
+              CONFIGURATION="dev"
+            elif [[ "${{ github.ref_type }}" == "tag" && "${{ github.ref_name }}" =~ .*rc$ ]]; then
+              CONFIGURATION="qa"
+            elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+              CONFIGURATION="prod"
+            fi
+          fi
+
+          echo "Configuration: ${CONFIGURATION}"                                  >> $GITHUB_STEP_SUMMARY
+          echo "Triggering repository: ${{ github.repository }}"                  >> $GITHUB_STEP_SUMMARY
+          echo "Triggering event: ${{ github.ref_type }} ${{ github.ref_name }}"  >> $GITHUB_STEP_SUMMARY
+          echo "Triggering SHA: ${{ github.sha }}"                                >> $GITHUB_STEP_SUMMARY
+
+          PRODUCT_WORKFLOW="${{ inputs.product-workflow }}"
+          PRODUCT_BRANCH=main
+
+          echo "On repository: ${{ inputs.product-repo }}"                >> $GITHUB_STEP_SUMMARY
+          gh workflow run ${{ inputs.product-workflow }} --repo ${{ inputs.product-repo }} --ref ${PRODUCT_BRANCH} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }} -f configuration=${CONFIGURATION}
+
+          # ${PRODUCT_WORKFLOW##*/} is a bash parameter expansion that extracts just the filename from a path
+          echo "See https://github.com/${{ inputs.product-repo }}/actions/workflows/${PRODUCT_WORKFLOW##*/}"  >> $GITHUB_STEP_SUMMARY

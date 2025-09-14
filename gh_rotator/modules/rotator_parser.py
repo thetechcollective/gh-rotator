@@ -15,7 +15,7 @@ def rotator_parse(args=None):
         type=str,
         dest="config_file",
         help="The path to the config file",
-        default="config-rotator.json",
+        default=None,
     )
 
     mainfestdir_parser = argparse.ArgumentParser(add_help=False)

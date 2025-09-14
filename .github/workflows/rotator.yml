@@ -1,0 +1,123 @@
+name: Rotate  (lock manifest)
+
+on:
+  workflow_call:
+    inputs:
+      # Required  
+      repo:
+        description: 'Repo to rotate (owner/repo)'
+        required: true
+        type: string
+        # Accessible at the caller as ${{github.repository}}
+      event_type:
+        description: 'Event type (branch|tag)'
+        required: true
+        type: string
+        # Accessible at the caller as ${{github.ref_type}}
+      event_name:
+        description: 'Actual name of the branch or tag '
+        required: true
+        type: string
+        # Accessible at the caller as ${{github.ref_name}}
+      sha:
+        description: 'SHA of the commit to lock in the manifest'
+        required: true
+        type: string
+        # Accessible at the caller as ${{github.sha}}
+      user_name:
+        description: 'Git user name for the merge commit'
+        required: true
+        type: string
+      user_email:
+        description: 'Git user email for the merge commit'
+        required: true
+        type: string
+      
+      # Optional  
+
+      rotator_pin:
+        description: 'Pin the gh-rotator GitHub CLI extension to a specific version - default is not pinned (main/LATEST)'
+        required: false
+        type: string
+        default: ''
+        
+    secrets:
+      token:
+        required: true
+        description: 'A PAT with content:write permissions to update the manifest'
+
+jobs:
+  lock-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4       
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.token }}
+          # Fetch all history for all branches and tags
+          # This is required to checking the manifest to the repo
+      
+      - name: Set up git config
+        # This is required to checking the manifest to the repo
+        run: |
+          git config --global user.name ${{ inputs.user_name }}
+          git config --global user.email ${{ inputs.user_email }}
+
+      - name: Ensure Python
+        # assume python3 is installed, it is in ubuntu-latest, 
+        # but if you are using a different image, you may need to install it
+        run: |
+          if command -v python3 &> /dev/null; then
+            PYTHON_VERSION=$(python3 --version)
+            echo "Using Python version: $PYTHON_VERSION" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ERROR: Python3 is not installed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Install gh extension 'thetechcollective/gh-rotator'
+        # Visit https://github.com/thetechcollective/gh-rotator for more information
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} #standard token is fine for installing the extension
+        run: |
+          if [[ -n "${{ inputs.rotator_pin }}" ]]; then
+            gh extension install thetechcollective/gh-rotator --pin ${{ inputs.rotator_pin }}
+            echo "Installed thetechcollective/gh-rotator pinned to: ${{ inputs.rotator_pin }}" >> $GITHUB_STEP_SUMMARY
+          else
+            gh extension install thetechcollective/gh-rotator
+            echo "Installed thetechcollective/gh-rotator from main/LATEST" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Determine configuration and lock manifest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Update manifest for **${{ inputs.repo }}**" >> $GITHUB_STEP_SUMMARY
+          echo "Triggering event was: **\`${{ inputs.event_type }}:${{ inputs.event_name }}\`**" >> $GITHUB_STEP_SUMMARY
+          echo "Triggering commit was: [**\`${{ inputs.sha }}\`**](https://github.com/${{ inputs.repo }}/commit/${{ inputs.sha }})" >> $GITHUB_STEP_SUMMARY
+
+          CONFIGURATION=$(gh rotator config --repo ${{ inputs.repo }} --event-type ${{ inputs.event_type }} --event-name ${{ inputs.event_name }})
+          echo "Configuration to update: $CONFIGURATION" >> $GITHUB_STEP_SUMMARY
+          echo "CONFIGURATION=$CONFIGURATION" >> $GITHUB_ENV
+
+          gh rotator lock --repo ${{ inputs.repo }} --event-type ${{ inputs.event_type }} --event-name ${{ inputs.event_name }} --sha ${{ inputs.sha }} --verbose
+
+      - name: Commit and Push Manifest Changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+          CONFIGURATION: ${{ env.CONFIGURATION }}
+        run: |
+          git add -A
+          git commit -m "Update manifest for ${{ inputs.repo }}
+            Triggering event was: '${{ inputs.event_type }}:${{ inputs.event_name }}'
+            Triggering commit was: https://github.com/${{ inputs.repo }}/commit/${{ inputs.sha }} 
+            Updated the manifest for the '${CONFIGURATION}' configuration"
+          git push origin main
+
+          echo "Successfully updated and committed the manifest for the '${CONFIGURATION}' configuration"  >> $GITHUB_STEP_SUMMARY
+
