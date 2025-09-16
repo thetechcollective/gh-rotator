@@ -10,15 +10,26 @@ PASS=TRUE
 
 # Same as in github workflow
 
-# Ruff check
-RUFF_OUT=$(ruff check --output-format=concise . 2>&1)
+# Ruff linting
+RUFF_LINT_OUT=$(ruff check --output-format=concise . 2>&1)
 
 if [ $? -eq 0 ]; then
-    echo "   ✅ Ruff check"
+    echo "   ✅ Ruff linting"
 else
-    echo "   ❌ Ruff check"
+    echo "   ❌ Ruff linting"
     PASS=FALSE
-    RUFF=FALSE
+    RUFF_LINT=FALSE
+fi
+
+# Ruff formatting
+RUFF_FORMAT_OUT=$(ruff format --check . 2>&1)
+
+if [ $? -eq 0 ]; then
+    echo "   ✅ Ruff formatting"
+else
+    echo "   ❌ Ruff formatting"
+    PASS=FALSE
+    RUFF_FORMAT=FALSE
 fi
 
 # Pytest with coverage
@@ -47,9 +58,14 @@ if [ "$PASS" == "TRUE" ]; then
     exit 0
 else
     echo ""
-    if [ "$RUFF" == "FALSE" ]; then
+    if [ "$RUFF_LINT" == "FALSE" ]; then
         echo "Ruff issues:"
-        echo "${RUFF_OUT}"
+        echo "${RUFF_LINT_OUT}"
+        echo ""
+    fi
+    if [ "$RUFF_FORMAT" == "FALSE" ]; then
+        echo "Ruff issues:"
+        echo "${RUFF_FORMAT_OUT}"
         echo ""
     fi
     if [ "$PYTEST" == "FALSE" ]; then

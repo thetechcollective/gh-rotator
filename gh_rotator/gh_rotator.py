@@ -10,7 +10,7 @@ from gh_rotator.modules.rotator_parser import rotator_parse
 def main():
     """Main entry point for the rotator CLI tool."""
     args = rotator_parse(sys.argv[1:])
-    
+
     # Execute the appropriate command handler
     if args.command in COMMAND_HANDLERS:
         COMMAND_HANDLERS[args.command](args)
@@ -18,7 +18,7 @@ def main():
         # Print help if no arguments are provided
         print("No command specified. Use -h or --help for usage information.")
         sys.exit(1)
-    
+
     sys.exit(0)
 
 

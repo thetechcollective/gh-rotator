@@ -23,7 +23,8 @@ jobs:
     with:
       statuses: |
         Pytest + cov
-        Ruff
+        Ruff Linting
+        Ruff Formatting
         Cspell
 
   pytest_with_coverage:
@@ -44,7 +45,18 @@ jobs:
       contents: read
     uses: lakruzz/workflows/.github/workflows/ruff_check.yml@experimental
     with:
-      context: Ruff
+      context: Ruff Linting
+
+  ruff_formatting:
+    name: Formatting
+    needs: mark-pending
+    permissions:
+      statuses: write
+      contents: read
+    uses: lakruzz/workflows/.github/workflows/ruff_formatting.yml@experimental
+    with:
+      context: Ruff Formatting
+      continue-on-error: false
 
   cspel_check:
     name: Spelling

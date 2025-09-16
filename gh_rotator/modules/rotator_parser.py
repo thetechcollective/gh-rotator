@@ -7,9 +7,7 @@ def rotator_parse(args=None):
     """Parse command line arguments for the rotator tool."""
     # Define the parent parser with the --verbose argument
     parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose output"
-    )
+    parent_parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     parent_parser.add_argument(
         "--config-file",
         type=str,
@@ -49,10 +47,10 @@ def rotator_parse(args=None):
             """,
     )
     lock_parser.add_argument(
-        "--repo", 
-        type=str, 
+        "--repo",
+        type=str,
         help="The fully qualified name (owner/repo) of the repo that fired the event",
-        required=True
+        required=True,
     )
     lock_parser.add_argument(
         "--event-type",
@@ -86,10 +84,10 @@ def rotator_parse(args=None):
             """,
     )
     manifest_parser.add_argument(
-        "--repo", 
-        type=str, 
+        "--repo",
+        type=str,
         help="The fully qualified name (owner/repo) of the repo to look up",
-        default=None
+        default=None,
     )
     manifest_parser.add_argument(
         "--configuration",
@@ -108,10 +106,10 @@ def rotator_parse(args=None):
             """,
     )
     config_parser.add_argument(
-        "--repo", 
-        type=str, 
+        "--repo",
+        type=str,
         help="The fully qualified name (owner/repo) of the repo to look up",
-        default=None
+        default=None,
     )
     config_parser.add_argument(
         "--event-type",
