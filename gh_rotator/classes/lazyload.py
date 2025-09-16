@@ -4,17 +4,17 @@ class Lazyload:
     def __init__(self):
         self.props = {}
 
-    def set(self, key, value):
+    def set(self, key: str, value):
         """Some syntactic sugar to set the class properties
 
         Args:
             key (str): The key to set in the class properties
             value: The value to set the key to
         """
-        self.props[key] = value
-        return self.props[key]
+        setattr(self, key, value)
+        return value
 
-    def get(self, key):
+    def get(self, key: str):
         """Some syntactic sugar to get the class properties
 
         Args:
@@ -23,5 +23,6 @@ class Lazyload:
         Returns:
             value: The value of the key in the class properties
         """
-        assert key in self.props, f"Property {key} not found on class"
-        return self.props[key]
+
+        assert hasattr(self, key)
+        return getattr(self, key)
