@@ -30,30 +30,41 @@ on:
       token:
         required: true
         description: 'A PAT with actions:write permissions. Used to trigger the product workflow'
-  
+        
 jobs:
   trigger-rotation:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write   
     steps:          
       - name: Checkout the repository
-        uses: actions/checkout@v5 
+        uses: actions/checkout@v5
 
       - name: trigger the config rotator on the product repo
         env:
           GITHUB_TOKEN: ${{ secrets.token }}
+          GH_TOKEN: ${{ secrets.token }}   # GH CLI uses this name
         run: |
-          echo "Calling flow:  ${{ inputs.product-workflow }}"                    >> $GITHUB_STEP_SUMMARY
-          echo "on branch:     ${{ inputs.product-branch }}"                      >> $GITHUB_STEP_SUMMARY
-          echo "In repository: ${{ inputs.product-repo }}"                        >> $GITHUB_STEP_SUMMARY
-          echo "with arguments"                                                   >> $GITHUB_STEP_SUMMARY
-          echo "  repository: ${{ github.repository }}"                           >> $GITHUB_STEP_SUMMARY
-          echo "  event_type: ${{ github.ref_type }}"                             >> $GITHUB_STEP_SUMMARY
-          echo "  event_name: ${{ github.ref_name }}"                             >> $GITHUB_STEP_SUMMARY
-          echo "  sha:        ${{ github.sha }}"                                  >> $GITHUB_STEP_SUMMARY
+          # Create summary content
+          {
+            echo "**Calling flow:** \`${{ inputs.product-workflow }}\`"
+            echo "**on branch:** \`${{ inputs.product-branch }}\`"
+            echo "**In repository:** \`${{ inputs.product-repo }}\`"
+            echo "**with arguments:**"
+            echo "- repository: \`${{ github.repository }}\`"
+            echo "- event_type: \`${{ github.ref_type }}\`"
+            echo "- event_name: \`${{ github.ref_name }}\`"
+            echo "- sha:        \`${{ github.sha }}\`"
+            echo ""
+          } > step_summary.md
+          
+          # Output the entire summary at once
+          cat step_summary.md >> $GITHUB_STEP_SUMMARY
   
 
           gh workflow run ${{ inputs.product-workflow }} --repo ${{ inputs.product-repo }} --ref ${{ inputs.product-branch }} -f repo=${{ github.repository }} -f event_name=${{ github.ref_name }} -f sha=${{ github.sha }} -f event_type=${{ github.ref_type }}
 
           PRODUCT_WORKFLOW="${{ inputs.product-workflow }}"
           # ${PRODUCT_WORKFLOW##*/} is a bash parameter expansion that extracts just the filename from a path
-          echo "See https://github.com/${{ inputs.product-repo }}/actions/workflows/${PRODUCT_WORKFLOW##*/}"  >> $GITHUB_STEP_SUMMARY
+          echo "See **https://github.com/${{ inputs.product-repo }}/actions/workflows/${PRODUCT_WORKFLOW##*/}**"  >> $GITHUB_STEP_SUMMARY
