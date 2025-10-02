@@ -113,10 +113,8 @@ jobs:
           CONFIGURATION: ${{ env.CONFIGURATION }}
         run: |
           git add -A
-          git commit -m "Update manifest for ${{ inputs.repo }}
-            Triggering event was: '${{ inputs.event_type }}:${{ inputs.event_name }}'
-            Triggering commit was: https://github.com/${{ inputs.repo }}/commit/${{ inputs.sha }} 
-            Updated the manifest for the '${CONFIGURATION}' configuration"
+          git commit -m "Update ${CONFIGURATION} manifest ('${{ inputs.event_type }}:${{ inputs.event_name }}') for ${{ inputs.repo }}
+            Triggering commit was: https://github.com/${{ inputs.repo }}/commit/${{ inputs.sha }}"
           git push origin main
 
           echo "Successfully updated and committed the manifest for the '${CONFIGURATION}' configuration"  >> $GITHUB_STEP_SUMMARY
