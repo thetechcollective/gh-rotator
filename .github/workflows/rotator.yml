@@ -100,8 +100,9 @@ jobs:
           echo "Update manifest for **${{ inputs.repo }}**" >> $GITHUB_STEP_SUMMARY
           echo "Triggering event was: **\`${{ inputs.event_type }}:${{ inputs.event_name }}\`**" >> $GITHUB_STEP_SUMMARY
           echo "Triggering commit was: [**\`${{ inputs.sha }}\`**](https://github.com/${{ inputs.repo }}/commit/${{ inputs.sha }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
-          CONFIGURATION=$(gh rotator config --repo ${{ inputs.repo }} --event-type ${{ inputs.event_type }} --event-name ${{ inputs.event_name }})
+          CONFIGURATION=$(gh rotator config --repo ${{ inputs.repo }} --event-type ${{ inputs.event_type }} --event-name ${{ inputs.event_name }} 2>> $GITHUB_STEP_SUMMARY )
           echo "Configuration to update: $CONFIGURATION" >> $GITHUB_STEP_SUMMARY
           echo "CONFIGURATION=$CONFIGURATION" >> $GITHUB_ENV
 
