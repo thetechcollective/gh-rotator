@@ -125,7 +125,7 @@ class TestProject(ManifestTestBase):
         manifest = ProductManifest(config, directory=self.MANIFESTS_PATH)
         manifest.rotate(
             event_type="tag",
-            event_name="1.0.34rc",
+            event_name="1.0.34-rc",
             repo="config-rotator/backend-component",
             sha="1a0b35a3cf0416b9ae8017509941334608243840",
         )
@@ -138,7 +138,7 @@ class TestProject(ManifestTestBase):
             manifest.get("qa_manifest")["qa"][2]["version"],
             "1a0b35a3cf0416b9ae8017509941334608243840",
         )
-        self.assertEqual(manifest.get("qa_manifest")["qa"][2]["ref_name"], "1.0.34rc")
+        self.assertEqual(manifest.get("qa_manifest")["qa"][2]["ref_name"], "1.0.34-rc")
         self.assertEqual(manifest.get("qa_manifest")["qa"][2]["ref_type"], "tag")
 
     @pytest.mark.unittest

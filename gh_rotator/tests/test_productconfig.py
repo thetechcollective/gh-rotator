@@ -141,3 +141,90 @@ class TestProject(unittest.TestCase):
             # Check the stderr message
             self.assertRegex(stderr_output, r"Error: No configuration file found")
             self.assertEqual(cm.exception.code, 1)
+
+    @pytest.mark.unittest
+    def test_get_config_name_successful_matches(self):
+        """Test successful pattern matching"""
+        config = ProductConfig(file=self.valid_config_path)
+        
+        # Test dev (branch)
+        result = config.get_config_name("config-rotator/backend-component", "main", "branch")
+        self.assertEqual(result, "dev")
+        
+        # Test prod (exact semver)
+        result = config.get_config_name("config-rotator/backend-component", "1.0.0", "tag") 
+        self.assertEqual(result, "prod")
+        
+        # Test qa (proper SEMVER 2.0 prerelease)
+        result = config.get_config_name("config-rotator/backend-component", "1.0.0-rc", "tag")
+        self.assertEqual(result, "qa")
+
+    @pytest.mark.unittest  
+    def test_get_config_name_partial_match_rejection(self):
+        """Test that partial matches are properly rejected (the bug we fixed)"""
+        config = ProductConfig(file=self.valid_config_path)
+        
+        test_cases = [
+            ("config-rotator/backend-component", "mains", "branch"),  # Should NOT match "main"
+            ("config-rotator/backend-component", "1.0.0rc", "tag"),  # Should NOT match anything (invalid SEMVER)
+            ("config-rotator/backend-component", "0.7.9rc", "tag"),  # Should NOT match anything (invalid SEMVER)
+        ]
+        
+        for repo, event_name, event_type in test_cases:
+            with self.subTest(event_name=event_name):
+                with patch("sys.stderr", new_callable=StringIO):
+                    with self.assertRaises(SystemExit) as cm:
+                        config.get_config_name(repo, event_name, event_type)
+                    self.assertEqual(cm.exception.code, 1)
+
+    @pytest.mark.unittest
+    def test_get_config_name_invalid_tag_formats(self):
+        """Test various invalid tag formats that should be rejected"""
+        config = ProductConfig(file=self.valid_config_path)
+        
+        invalid_tags = [
+            "1.2",          # Not enough version parts
+            "1.2.3.4",      # Too many version parts  
+            "v1.2.3",       # Has 'v' prefix
+            "1.2.3-",       # Ends with hyphen
+            "release-1.2.3" # Not a semver at all
+        ]
+        
+        for invalid_tag in invalid_tags:
+            with self.subTest(tag=invalid_tag):
+                with patch("sys.stderr", new_callable=StringIO):
+                    with self.assertRaises(SystemExit) as cm:
+                        config.get_config_name(
+                            "config-rotator/backend-component",
+                            invalid_tag,
+                            "tag"
+                        )
+                    self.assertEqual(cm.exception.code, 1)
+
+    @pytest.mark.unittest
+    def test_get_config_name_wrong_event_type(self):
+        """Test that wrong event type is rejected"""
+        config = ProductConfig(file=self.valid_config_path)
+        
+        with patch("sys.stderr", new_callable=StringIO):
+            with self.assertRaises(SystemExit) as cm:
+                config.get_config_name(
+                    "config-rotator/backend-component",
+                    "main", 
+                    "tag"  # main is branch, not tag
+                )
+            self.assertEqual(cm.exception.code, 1)
+
+    @pytest.mark.unittest
+    def test_get_config_name_invalid_repo(self):
+        """Test that non-matching repo is rejected"""
+        config = ProductConfig(file=self.valid_config_path)
+        
+        with patch("sys.stderr", new_callable=StringIO):
+            with self.assertRaises(SystemExit) as cm:
+                config.get_config_name(
+                    "nonexistent/repo",
+                    "main",
+                    "branch"
+                )
+            self.assertEqual(cm.exception.code, 1)
